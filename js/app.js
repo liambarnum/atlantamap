@@ -14,11 +14,23 @@
   const TRAVEL_LABELS = { walk: 'Walking', run: 'Running', bike: 'Biking' };
   const GOOGLE_TRAVEL = { walk: 'walking', run: 'walking', bike: 'bicycling' };
 
-  const SEGMENT_STYLES = {
-    open: { color: '#1b7f4d', weight: 5, dash: null, label: 'Open' },
-    construction: { color: '#b06f00', weight: 4, dash: '12 7', label: 'Under construction' },
-    planned: { color: '#8a8a8a', weight: 4, dash: '3 9', label: 'Planned' },
+  /**
+   * Every segment is drawn identically — status is shown as a labelled badge
+   * on the segment, not encoded in how the line looks. The colour here is only
+   * for the badge and the status filter chips.
+   */
+  const CORRIDOR_STYLE = { color: '#1b7f4d', weight: 5 };
+
+  const STATUS_META = {
+    open: { label: 'Open', badge: '#1b7f4d', detail: 'Finished and open to the public.' },
+    interim: { label: 'Interim', badge: '#2f9e44', detail: 'Walkable, but not yet the finished surface.' },
+    construction: { label: 'Building', badge: '#b06f00', detail: 'Under construction.' },
+    planned: { label: 'Planned', badge: '#6b7570', detail: 'Planned or in design; not yet built.' },
+    closed: { label: 'Closed', badge: '#c2371f', detail: 'Currently closed.' },
   };
+  const STATUS_ORDER = ['open', 'interim', 'construction', 'planned', 'closed'];
+  const statusMeta = (status) =>
+    STATUS_META[status] || { label: status || 'Unknown', badge: '#6b7570', detail: '' };
 
   // The route usually sits directly on top of the corridor, so it is drawn
   // wide and translucent — a highlighter over the trail rather than a line
@@ -40,11 +52,19 @@
       showCorridor: true,
       showAccess: true,
       hiddenSegments: [],
+      hiddenStatuses: [],
       hiddenAccessTypes: [],
       includeCorridor: true,
       includeAccess: false,
     },
-    ui: { dropMode: false, selectedPinId: null, accessSearch: '' },
+    ui: {
+      dropMode: false,
+      selectedPinId: null,
+      accessSearch: '',
+      placeQuery: '',
+      placeResults: [],
+      placeStatus: null, // { kind: 'searching' | 'error' | 'empty', message }
+    },
   };
 
   let corridor = null; // GeoJSON FeatureCollection
@@ -58,6 +78,7 @@
   let renderedPinIds = new Set();
   let renderedAccessIds = new Set();
   let renderedSegmentIds = new Set();
+  let renderedPlaceIds = new Set();
 
   const $ = (id) => document.getElementById(id);
 
@@ -360,6 +381,15 @@
 
   // ---------------------------------------------------------------- drawing
 
+  /** A segment shows unless it, or its status, has been filtered out. */
+  function isSegmentVisible(props) {
+    return (
+      state.settings.showCorridor &&
+      !state.settings.hiddenSegments.includes(props.id) &&
+      !state.settings.hiddenStatuses.includes(props.status)
+    );
+  }
+
   function drawCorridor() {
     const wanted = new Set();
 
@@ -367,18 +397,15 @@
       if (!feature.geometry || feature.geometry.type !== 'LineString') continue;
       const props = feature.properties || {};
       const id = `seg-${props.id || feature.id || props.name}`;
-      const style = SEGMENT_STYLES[props.status] || SEGMENT_STYLES.open;
-      const visible =
-        state.settings.showCorridor && !state.settings.hiddenSegments.includes(props.id);
+      const visible = isSegmentVisible(props);
 
       wanted.add(id);
       map.setPolyline(id, feature.geometry.coordinates.map(([lng, lat]) => [lat, lng]), {
-        color: style.color,
-        weight: style.weight,
-        dash: style.dash,
+        color: CORRIDOR_STYLE.color,
+        weight: CORRIDOR_STYLE.weight,
         interactive: true,
         visible,
-        tooltip: props.name,
+        tooltip: `${props.name} — ${statusMeta(props.status).label}`,
         zIndex: 2,
         // While dropping pins, a click on the trail means "put one here",
         // which is the easiest way to pin an exact spot on the corridor.
@@ -477,14 +504,18 @@
 
   function showSegmentPopup(feature) {
     const p = feature.properties;
-    const style = SEGMENT_STYLES[p.status] || SEGMENT_STYLES.open;
+    const meta = statusMeta(p.status);
     const coords = feature.geometry.coordinates;
     const mid = coords[Math.floor(coords.length / 2)];
     map.showPopup(
       [mid[1], mid[0]],
       `<div class="popup">
          <h3>${escapeHTML(p.name)}</h3>
-         <div class="meta" style="color:${style.color}">${escapeHTML(style.label)} · ${fmtDist(p.lengthMeters || 0)}</div>
+         <div class="meta">
+           <span class="status-badge" style="background:${meta.badge}">${escapeHTML(meta.label)}</span>
+           <span>${fmtDist(p.lengthMeters || 0)}</span>
+         </div>
+         ${meta.detail ? `<p class="status-detail">${escapeHTML(meta.detail)}</p>` : ''}
          <p>${escapeHTML(p.note || '')}</p>
        </div>`
     );
@@ -559,6 +590,8 @@
       addPin(lat, lng, { name: feature.properties.name, sourceId: id });
       map.closePopup();
       toast(`Added “${feature.properties.name}” to the route.`);
+    } else if (action === 'add-result') {
+      addResultToRoute(Number(target.dataset.index));
     } else if (action === 'copy-coords') {
       copyText(`${Number(target.dataset.lat).toFixed(6)}, ${Number(target.dataset.lng).toFixed(6)}`);
     } else if (action === 'pin-toggle') {
@@ -613,6 +646,7 @@
     renderPinList();
     renderLegend();
     renderAccessControls();
+    renderPlaceResults();
   }
 
   function renderRoutePanel() {
@@ -685,25 +719,278 @@
   }
 
   function renderLegend() {
+    $('corridorControls').style.display = state.settings.showCorridor ? '' : 'none';
+
+    // Status filter chips, in a fixed order, covering only the statuses the
+    // loaded data actually uses.
+    const present = [...new Set(corridor.features.map((f) => (f.properties || {}).status))];
+    present.sort((a, b) => STATUS_ORDER.indexOf(a) - STATUS_ORDER.indexOf(b));
+
+    const chips = $('statusChips');
+    chips.innerHTML = '';
+    for (const status of present) {
+      const meta = statusMeta(status);
+      const on = !state.settings.hiddenStatuses.includes(status);
+      const count = corridor.features.filter((f) => (f.properties || {}).status === status).length;
+      const button = document.createElement('button');
+      button.className = 'chip chip-status';
+      button.dataset.status = status;
+      button.setAttribute('aria-pressed', String(on));
+      button.title = meta.detail;
+      button.innerHTML =
+        `<span class="chip-dot" style="background:${meta.badge}"></span>` +
+        `${escapeHTML(meta.label)} <em>${count}</em>`;
+      chips.appendChild(button);
+    }
+
     const legend = $('segmentLegend');
     legend.innerHTML = '';
+    let shown = 0;
 
     for (const feature of corridor.features) {
       const p = feature.properties || {};
-      const style = SEGMENT_STYLES[p.status] || SEGMENT_STYLES.open;
-      const hidden = state.settings.hiddenSegments.includes(p.id);
+      const meta = statusMeta(p.status);
+      const byStatus = state.settings.hiddenStatuses.includes(p.status);
+      const hidden = state.settings.hiddenSegments.includes(p.id) || byStatus;
+      if (!hidden) shown++;
 
       const li = document.createElement('li');
+      li.className = hidden ? 'segment-hidden' : '';
       li.innerHTML = `
         <button data-seg="${escapeHTML(p.id)}" aria-pressed="${!hidden}"
-                title="${hidden ? 'Show' : 'Hide'} ${escapeHTML(p.name)}"
-                style="opacity:${hidden ? 0.4 : 1}">
-          <span class="swatch" style="border-top:3px ${style.dash ? 'dashed' : 'solid'} ${style.color}"></span>
-          <span class="seg-name">${escapeHTML(p.name)}</span>
-          <span class="seg-len">${fmtDist(p.lengthMeters || 0)}</span>
+                title="${byStatus
+                  ? `${escapeHTML(meta.label)} segments are filtered out`
+                  : `${hidden ? 'Show' : 'Hide'} ${escapeHTML(p.name)}`}"
+                ${byStatus ? 'disabled' : ''}>
+          <span class="seg-eye" aria-hidden="true">${hidden ? '○' : '●'}</span>
+          <span class="seg-body">
+            <span class="seg-name">${escapeHTML(p.name)}</span>
+            <span class="seg-meta">
+              <span class="status-badge" style="background:${meta.badge}">${escapeHTML(meta.label)}</span>
+              <span class="seg-len">${fmtDist(p.lengthMeters || 0)}</span>
+            </span>
+          </span>
         </button>`;
       legend.appendChild(li);
     }
+
+    $('segmentCount').textContent = `(${shown} of ${corridor.features.length})`;
+  }
+
+  // ------------------------------------------------------------ place search
+
+  let searchAbort = null;
+  let searchDebounce = null;
+
+  /**
+   * Access points and BeltLine segments matching the query, so typing a place
+   * you already know is on the trail answers instantly and without a network
+   * round trip.
+   */
+  function localMatches(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const hits = [];
+
+    for (const feature of accessPoints.features) {
+      const p = feature.properties;
+      const haystack = `${p.name} ${p.description || ''} ${(p.amenities || []).join(' ')}`.toLowerCase();
+      if (!haystack.includes(q)) continue;
+      const [lng, lat] = feature.geometry.coordinates;
+      hits.push({
+        kind: 'access',
+        id: p.id,
+        name: p.name,
+        address: `${p.type} · ${segmentName(p.segment)}`,
+        lat,
+        lng,
+        // Prefer a name match over a description match.
+        rank: p.name.toLowerCase().startsWith(q) ? 0 : p.name.toLowerCase().includes(q) ? 1 : 2,
+      });
+    }
+
+    for (const feature of corridor.features) {
+      const p = feature.properties || {};
+      if (!String(p.name).toLowerCase().includes(q)) continue;
+      const coords = feature.geometry.coordinates;
+      const mid = coords[Math.floor(coords.length / 2)];
+      hits.push({
+        kind: 'segment',
+        id: p.id,
+        name: p.name,
+        address: `BeltLine segment · ${statusMeta(p.status).label} · ${fmtDist(p.lengthMeters || 0)}`,
+        lat: mid[1],
+        lng: mid[0],
+        rank: 0,
+      });
+    }
+
+    return hits.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name)).slice(0, 8);
+  }
+
+  /** Local results appear immediately; geocoding waits for an explicit search. */
+  function updateLocalResults() {
+    const local = localMatches(state.ui.placeQuery);
+    const remote = state.ui.placeResults.filter((r) => r.kind === 'place');
+    state.ui.placeResults = [...local, ...remote];
+    renderPlaceResults();
+    drawPlaceMarkers();
+  }
+
+  async function runPlaceSearch() {
+    const query = state.ui.placeQuery.trim();
+    if (!query) {
+      clearPlaceResults();
+      return;
+    }
+
+    if (searchAbort) searchAbort.abort();
+    searchAbort = new AbortController();
+
+    state.ui.placeStatus = { kind: 'searching', message: `Searching for “${query}”…` };
+    renderPlaceResults();
+
+    try {
+      const found = await Geocode.search(query, {
+        preferGoogle: state.settings.basemap === 'google',
+        signal: searchAbort.signal,
+      });
+      const places = found.map((hit, i) => ({ ...hit, kind: 'place', id: `place-${i}` }));
+      const local = localMatches(query);
+      state.ui.placeResults = [...local, ...places];
+      state.ui.placeStatus =
+        state.ui.placeResults.length === 0
+          ? { kind: 'empty', message: `Nothing found for “${query}”.` }
+          : null;
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.warn('Place search failed:', err);
+      state.ui.placeStatus = {
+        kind: 'error',
+        message: err.message || 'The place search could not be reached.',
+      };
+    }
+
+    renderPlaceResults();
+    drawPlaceMarkers();
+    const firstPlace = state.ui.placeResults.find((r) => r.kind === 'place');
+    if (firstPlace) map.panTo([firstPlace.lat, firstPlace.lng], 15);
+  }
+
+  function clearPlaceResults() {
+    if (searchAbort) searchAbort.abort();
+    state.ui.placeResults = [];
+    state.ui.placeStatus = null;
+    renderPlaceResults();
+    drawPlaceMarkers();
+  }
+
+  function renderPlaceResults() {
+    const list = $('placeResults');
+    const status = $('placeSearchStatus');
+    const results = state.ui.placeResults;
+
+    if (state.ui.placeStatus) {
+      status.textContent = state.ui.placeStatus.message;
+      status.className = `search-status search-${state.ui.placeStatus.kind}`;
+      status.hidden = false;
+    } else {
+      status.hidden = true;
+    }
+
+    list.innerHTML = '';
+    list.hidden = results.length === 0;
+    $('placeResultsActions').hidden = results.length === 0;
+    if (!results.length) return;
+
+    results.forEach((hit, index) => {
+      const li = document.createElement('li');
+      li.className = `result result-${hit.kind}`;
+      li.innerHTML = `
+        <button class="result-open" data-result="${index}" title="Show on the map">
+          <span class="result-kind" aria-hidden="true">${
+            hit.kind === 'place' ? '🔍' : hit.kind === 'segment' ? '〰' : '◉'
+          }</span>
+          <span class="result-text">
+            <span class="result-name">${escapeHTML(hit.name)}</span>
+            <span class="result-address">${escapeHTML(hit.address || '')}</span>
+          </span>
+        </button>
+        <button class="result-add" data-add-result="${index}"
+                title="Add to the route" aria-label="Add ${escapeHTML(hit.name)} to the route">+</button>`;
+      list.appendChild(li);
+    });
+  }
+
+  function drawPlaceMarkers() {
+    const wanted = new Set();
+    state.ui.placeResults.forEach((hit, index) => {
+      if (hit.kind !== 'place') return;
+      const id = `place-marker-${index}`;
+      wanted.add(id);
+      map.setMarker(id, {
+        position: [hit.lat, hit.lng],
+        icon: Icons.placeIcon(false),
+        title: hit.name,
+        visible: true,
+        zIndex: 80,
+      });
+    });
+
+    for (const id of renderedPlaceIds) if (!wanted.has(id)) map.removeMarker(id);
+    renderedPlaceIds = wanted;
+  }
+
+  function showPlacePopup(hit, index) {
+    map.showPopup(
+      [hit.lat, hit.lng],
+      `<div class="popup">
+         <h3>${escapeHTML(hit.name)}</h3>
+         ${hit.address ? `<div class="meta">${escapeHTML(hit.address)}</div>` : ''}
+         <div class="popup-actions">
+           <button class="primary" data-action="add-result" data-index="${index}">Add to route</button>
+           <button data-action="copy-coords" data-lat="${hit.lat}" data-lng="${hit.lng}">Copy coords</button>
+         </div>
+         <div class="coords">${hit.lat.toFixed(5)}, ${hit.lng.toFixed(5)}${
+           hit.source ? ` · via ${escapeHTML(hit.source)}` : ''
+         }</div>
+       </div>`
+    );
+  }
+
+  function openResult(index) {
+    const hit = state.ui.placeResults[index];
+    if (!hit) return;
+    map.panTo([hit.lat, hit.lng], hit.kind === 'segment' ? 14 : 16);
+    if (hit.kind === 'access') {
+      const feature = accessPoints.features.find((f) => f.properties.id === hit.id);
+      if (feature) showAccessPopup(feature);
+    } else if (hit.kind === 'segment') {
+      const feature = corridor.features.find((f) => (f.properties || {}).id === hit.id);
+      if (feature) showSegmentPopup(feature);
+    } else {
+      showPlacePopup(hit, index);
+    }
+  }
+
+  function addResultToRoute(index) {
+    const hit = state.ui.placeResults[index];
+    if (!hit) return;
+    addPin(hit.lat, hit.lng, {
+      name: hit.name,
+      notes: hit.kind === 'place' ? hit.address || '' : '',
+      sourceId: hit.kind === 'access' ? hit.id : null,
+    });
+
+    // Drop it from the results: it is a route stop now, and leaving the search
+    // marker behind would stack a second pin on the same spot.
+    state.ui.placeResults.splice(index, 1);
+    if (!state.ui.placeResults.length) state.ui.placeStatus = null;
+    renderPlaceResults();
+    drawPlaceMarkers();
+
+    map.closePopup();
+    toast(`Added “${hit.name}” to the route.`);
   }
 
   function renderAccessControls() {
@@ -764,6 +1051,7 @@
   function redrawEverything() {
     drawCorridor();
     drawAccessPoints();
+    drawPlaceMarkers();
     drawPins();
     drawRoute();
   }
@@ -813,6 +1101,15 @@
           toast(`Added “${feature.properties.name}” to the route.`);
         } else {
           showAccessPopup(feature);
+        }
+      } else if (id.startsWith('place-marker-')) {
+        const index = Number(id.slice('place-marker-'.length));
+        const hit = state.ui.placeResults[index];
+        if (!hit) return;
+        if (state.ui.dropMode) {
+          addResultToRoute(index);
+        } else {
+          showPlacePopup(hit, index);
         }
       } else if (id.startsWith('pin-')) {
         const pin = state.pins.find((p) => p.id === id.slice('pin-'.length));
@@ -1099,15 +1396,62 @@
       dragFrom = null;
     });
 
+    // --- place search
+    const searchInput = $('placeSearch');
+    searchInput.addEventListener('input', (e) => {
+      state.ui.placeQuery = e.target.value;
+      clearTimeout(searchDebounce);
+      // Local hits update as you type; the geocoder only runs on demand, so
+      // typing never fires a burst of requests at it.
+      searchDebounce = setTimeout(updateLocalResults, 120);
+    });
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        runPlaceSearch();
+      } else if (event.key === 'Escape') {
+        searchInput.value = '';
+        state.ui.placeQuery = '';
+        clearPlaceResults();
+      }
+    });
+    $('placeSearchBtn').addEventListener('click', runPlaceSearch);
+    $('clearResultsBtn').addEventListener('click', () => {
+      searchInput.value = '';
+      state.ui.placeQuery = '';
+      clearPlaceResults();
+    });
+    $('placeResults').addEventListener('click', (event) => {
+      const add = event.target.closest('button[data-add-result]');
+      if (add) {
+        addResultToRoute(Number(add.dataset.addResult));
+        return;
+      }
+      const open = event.target.closest('button[data-result]');
+      if (open) openResult(Number(open.dataset.result));
+    });
+
     // --- layers
     $('showCorridor').addEventListener('change', (e) => {
       state.settings.showCorridor = e.target.checked;
       drawCorridor();
+      renderLegend();
+      save();
+    });
+    $('statusChips').addEventListener('click', (event) => {
+      const chip = event.target.closest('.chip-status');
+      if (!chip) return;
+      const hidden = state.settings.hiddenStatuses;
+      const at = hidden.indexOf(chip.dataset.status);
+      if (at >= 0) hidden.splice(at, 1);
+      else hidden.push(chip.dataset.status);
+      drawCorridor();
+      renderLegend();
       save();
     });
     $('segmentLegend').addEventListener('click', (event) => {
       const button = event.target.closest('button[data-seg]');
-      if (!button) return;
+      if (!button || button.disabled) return;
       const id = button.dataset.seg;
       const hidden = state.settings.hiddenSegments;
       const at = hidden.indexOf(id);

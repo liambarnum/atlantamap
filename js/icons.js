@@ -46,5 +46,24 @@
     return { url: svgToDataUri(svg), size: [w, h], anchor: [w / 2, h] };
   }
 
-  global.Icons = { accessIcon, pinIcon, TYPE_STYLES };
+  /**
+   * Search hit. Deliberately unlike both the access dots and the numbered
+   * route pins, because a search result is neither yet — it is a suggestion
+   * sitting on the map until you add it or clear it.
+   */
+  function placeIcon(highlighted) {
+    const w = 26;
+    const h = 34;
+    const fill = highlighted ? '#4c2a86' : '#6b3fa0';
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+        <path d="M13 33S24 20.5 24 13A11 11 0 1 0 2 13c0 7.5 11 20 11 20z"
+              fill="${fill}" stroke="#ffffff" stroke-width="2.5"/>
+        <circle cx="13" cy="12.5" r="6" fill="none" stroke="#ffffff" stroke-width="2"/>
+        <path d="M17.4 17.2 21 21" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+      </svg>`;
+    return { url: svgToDataUri(svg), size: [w, h], anchor: [w / 2, h] };
+  }
+
+  global.Icons = { accessIcon, pinIcon, placeIcon, TYPE_STYLES };
 })(window);

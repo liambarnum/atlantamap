@@ -147,6 +147,16 @@
         existing.setLatLng(spec.position);
         existing.setIcon(icon);
         existing.setZIndexOffset(spec.zIndex || 0);
+        // Leaflet has no setTitle, and leaving these stale means a renamed pin
+        // keeps its old tooltip and accessible name.
+        const title = spec.title || '';
+        existing.options.title = title;
+        existing.options.alt = title;
+        const element = existing.getElement();
+        if (element) {
+          element.title = title;
+          element.alt = title;
+        }
         if (existing.dragging) {
           if (spec.draggable) existing.dragging.enable();
           else existing.dragging.disable();
@@ -347,6 +357,7 @@
         existing.setIcon(icon);
         existing.setDraggable(Boolean(spec.draggable));
         existing.setZIndex(spec.zIndex || 0);
+        existing.setTitle(spec.title || '');
         return;
       }
       const marker = new gm.Marker({

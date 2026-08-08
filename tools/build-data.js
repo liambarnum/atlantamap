@@ -28,6 +28,13 @@ const ROOT = path.join(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data');
 
 /**
+ * Status vocabulary. Segments are all drawn the same way on the map — status
+ * is information, not styling — so these strings are what the legend badge and
+ * the status filter read from. Anything not in this list fails the build.
+ */
+const STATUSES = ['open', 'interim', 'construction', 'planned', 'closed'];
+
+/**
  * The loop, split into the segments the BeltLine is actually named and built
  * in. Each segment starts on the previous segment's last coordinate so the
  * whole thing concatenates into one closed ring; buildSpine() asserts this.
@@ -349,6 +356,16 @@ function buildSpine(segments) {
 
 // --- emitters ---------------------------------------------------------------
 
+function assertStatuses(segments) {
+  for (const seg of segments) {
+    if (!STATUSES.includes(seg.status)) {
+      throw new Error(
+        `segment "${seg.id}" has status "${seg.status}"; expected one of ${STATUSES.join(', ')}`
+      );
+    }
+  }
+}
+
 function corridorGeoJSON(segments) {
   return {
     type: 'FeatureCollection',
@@ -417,6 +434,7 @@ function writeJSONPair(basename, globalName, obj) {
 function main() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 
+  assertStatuses(SEGMENTS);
   const spine = buildSpine(SEGMENTS);
   const corridor = corridorGeoJSON(SEGMENTS);
   const access = accessGeoJSON(ACCESS_POINTS);

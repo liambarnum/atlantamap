@@ -27,6 +27,29 @@
 
   <aside class="sidebar" id="sidebar">
 
+    <!-- ------------------------------------------------ find a place -->
+    <section class="panel" aria-labelledby="findHeading">
+      <h2 id="findHeading">Find a place</h2>
+
+      <div class="search-box">
+        <input type="search" id="placeSearch" autocomplete="off" spellcheck="false"
+               placeholder="Piedmont Park, 675 Ponce, a coffee shop…"
+               aria-label="Search for a place" aria-describedby="placeSearchHint">
+        <button class="btn" id="placeSearchBtn">Search</button>
+      </div>
+
+      <p class="hint" id="placeSearchHint">
+        Searches the BeltLine access points and, once you press enter, addresses and
+        places anywhere. Add any result to your route.
+      </p>
+
+      <div class="search-status" id="placeSearchStatus" hidden></div>
+      <ul class="result-list" id="placeResults" aria-label="Search results" hidden></ul>
+      <div class="button-row" id="placeResultsActions" hidden>
+        <button class="btn" id="clearResultsBtn">Clear results</button>
+      </div>
+    </section>
+
     <!-- ------------------------------------------------ route -->
     <section class="panel" aria-labelledby="routeHeading">
       <h2 id="routeHeading">Your route</h2>
@@ -80,9 +103,13 @@
 
       <label class="check check-lead">
         <input type="checkbox" id="showCorridor" checked>
-        <span>BeltLine corridor</span>
+        <span>BeltLine corridor <em id="segmentCount"></em></span>
       </label>
-      <ul class="legend" id="segmentLegend"></ul>
+
+      <div class="corridor-controls" id="corridorControls">
+        <div class="chips" id="statusChips" role="group" aria-label="Filter segments by status"></div>
+        <ul class="legend" id="segmentLegend"></ul>
+      </div>
 
       <label class="check check-lead">
         <input type="checkbox" id="showAccess" checked>
@@ -90,7 +117,7 @@
       </label>
 
       <div class="access-controls" id="accessControls">
-        <input type="search" id="accessSearch" placeholder="Search access points…" aria-label="Search access points">
+        <input type="search" id="accessSearch" placeholder="Filter access points…" aria-label="Filter access points">
         <div class="chips" id="accessTypeChips" role="group" aria-label="Filter access points by type"></div>
         <ul class="access-list" id="accessList" aria-label="Access points"></ul>
       </div>
@@ -165,7 +192,10 @@
         needs real precision. Import the official alignment to replace them.
       </p>
       <p class="hint">
-        Everything you add stays in this browser. Nothing is uploaded.
+        Your pins and route stay in this browser. The one exception is
+        <strong>Find a place</strong>: pressing enter sends that search text to
+        OpenStreetMap's geocoder, or to Google if the Google basemap is running. Typing
+        alone never leaves the page.
       </p>
     </section>
 
@@ -194,6 +224,7 @@
 <script src="js/geo.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/map.js"></script>
+<script src="js/geocode.js"></script>
 <script src="js/exporters.js"></script>
 <script src="js/app.js"></script>
 </body>

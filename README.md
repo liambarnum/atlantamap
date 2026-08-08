@@ -30,15 +30,30 @@ Deploying to GitHub Pages needs nothing beyond pointing Pages at the repository 
 
 ## What it does
 
-**The corridor.** All six named segments of the 22-mile loop, drawn in the style of
-their status — solid for open, dashed amber for under construction, dotted grey for
-planned. Each is listed in the sidebar with its length and can be hidden on its own,
-or the whole corridor can be switched off. Clicking a segment tells you what it is.
+**Find a place.** Search for anywhere — an address, a landmark, a coffee shop — and add
+it to your route. Typing matches the bundled access points and BeltLine segments
+instantly with no network call; pressing enter also geocodes the text so you can find
+places that aren't on the trail. Every result has a **+** that drops it into the route
+order, and found places show on the map as purple search markers until you add or clear
+them.
+
+**The corridor.** All six named segments of the 22-mile loop. Every segment is drawn
+the same way — status is shown as a labelled badge rather than encoded in the line
+style, so the map stays readable and the status stays legible. Each segment can be
+hidden on its own, filtered out by status, or the whole corridor switched off. Clicking
+a segment shows its status, what that status means, and its length.
+
+The statuses are **Open**, **Interim** (walkable but not the finished surface),
+**Building**, **Planned** and **Closed**. `tools/build-data.js` rejects any other value,
+so a typo cannot quietly become a fifth category. As currently mapped: Eastside,
+Westside and Westside Segment 4 are open; Southside and Northeast are building;
+Northwest is planned.
 
 **Access points.** 51 trailheads, park entrances, transit connections and street
-crossings. Toggle the whole layer, filter by type with the chips, or search by name,
+crossings. Toggle the whole layer, filter by type with the chips, or filter by name,
 amenity or segment — the map and the list narrow together. Each has a popup with its
-amenities and an **Add to route** button.
+amenities and an **Add to route** button. (The filter box in Layers controls which
+markers are drawn; *Find a place* at the top searches for things to add.)
 
 **Pins.** Press **Drop pin** and click anywhere to place one; the mode stays on so you
 can place several, and <kbd>Esc</kbd> ends it. Clicking directly on the trail pins that
@@ -66,7 +81,10 @@ puts the whole route in the URL, so it survives being pasted to someone else wit
 account or server involved. *Open in Google Maps* hands the stops to Google Maps
 directions.
 
-Everything is kept in `localStorage`. Nothing is uploaded anywhere.
+Pins, route and settings are kept in `localStorage`. The only thing that ever leaves
+the page is the text you type into **Find a place**, and only when you press enter: it
+goes to [Nominatim](https://nominatim.openstreetmap.org/), or to Google's geocoder when
+the Google basemap is running. Typing alone stays local.
 
 ## Basemaps
 
@@ -87,6 +105,12 @@ rather than showing you a blank grey rectangle.
 
 Both basemaps go through the adapter in `js/map.js`, so nothing in the application
 logic knows or cares which one is running.
+
+Place search follows the same pattern in `js/geocode.js`. With the Google basemap it
+tries Google's geocoder first, reusing the already-loaded SDK — that needs the
+**Geocoding API** enabled too, which is a separate switch from the Maps JavaScript API,
+so it falls through to Nominatim rather than failing when it isn't. On OpenStreetMap it
+goes straight to Nominatim, which needs no key.
 
 ## About the bundled data
 
@@ -134,6 +158,7 @@ styles.css              all styling, light and dark
 js/geo.js               distance, projection onto a path, slicing a loop
 js/icons.js             marker artwork as SVG data URIs
 js/map.js               the map adapter: one interface, Leaflet and Google behind it
+js/geocode.js           place search: Google when available, Nominatim otherwise
 js/exporters.js         GeoJSON/GPX/KML/CSV out, GeoJSON/GPX/KML in
 js/app.js               state, routing, rendering, event wiring
 data/*.geojson          the corridor and access points
@@ -159,9 +184,10 @@ crossing the seam in the coordinate list does not produce a line across the city
 that the drawn line is always as long as the distance reported for it. The last group
 runs against the real corridor data rather than a synthetic path.
 
-The UI was developed against a Playwright script covering the layers, pin dropping,
-every reordering path, routing modes, all four export formats, import round trips,
-share links and persistence.
+The UI was developed against a Playwright script of 141 checks covering the layers,
+segment statuses and status filtering, place search (with the geocoder stubbed, plus
+its empty and unreachable paths), pin dropping, every reordering path, routing modes,
+all four export formats, import round trips, share links and persistence.
 
 ## Credits
 
