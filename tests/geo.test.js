@@ -173,85 +173,121 @@ near(Geo.haversine([33, -84], [34, -84]), 111000, 500, 'haversine: one degree of
   );
 }
 
-// --- slicePath against the real corridor ------------------------------------
+// --- chainFragments ---------------------------------------------------------
+{
+  // Three pieces of one north-south line, shuffled and with two reversed.
+  const a = [[33.75, -84.4], [33.76, -84.4]];
+  const b = [[33.77, -84.4], [33.76, -84.4]]; // reversed
+  const c = [[33.78, -84.4], [33.77, -84.4]]; // reversed
+  const chained = Geo.chainFragments([b, c, a]);
+  check('chainFragments: uses every fragment', chained.dropped.length === 0);
+  near(Geo.pathLength(chained.coords), Geo.haversine([33.75, -84.4], [33.78, -84.4]), 2,
+    'chainFragments: reassembles the original length');
+  const lats = chained.coords.map((p) => p[0]);
+  check('chainFragments: comes out monotonic',
+    lats.every((v, i) => i === 0 || v >= lats[i - 1]) ||
+    lats.every((v, i) => i === 0 || v <= lats[i - 1]),
+    lats.join(', '));
+  check('chainFragments: touching fragments record no bridge',
+    chained.bridges.every((d) => d < 1), chained.bridges.join(', '));
+}
+{
+  // Growing from both ends: the starting fragment sits in the middle, so one
+  // piece has to be prepended rather than appended.
+  const middle = [[33.76, -84.4], [33.77, -84.4]];
+  const before = [[33.75, -84.4], [33.76, -84.4]];
+  const after = [[33.77, -84.4], [33.78, -84.4]];
+  const chained = Geo.chainFragments([middle, after, before]);
+  near(Geo.pathLength(chained.coords), Geo.haversine([33.75, -84.4], [33.78, -84.4]), 2,
+    'chainFragments: grows from both ends rather than doubling back');
+  check('chainFragments: no long bridges when everything touches',
+    Math.max(...chained.bridges) < 1, chained.bridges.join(', '));
+}
+{
+  // A fragment beyond maxBridge is left out rather than reached for.
+  const near_ = [[33.75, -84.4], [33.76, -84.4]];
+  const far = [[34.20, -84.4], [34.21, -84.4]];
+  const chained = Geo.chainFragments([near_, far], { maxBridge: 2500 });
+  check('chainFragments: drops an unreachable fragment', chained.dropped.length === 1);
+  near(Geo.pathLength(chained.coords), Geo.haversine(near_[0], near_[1]), 1,
+    'chainFragments: keeps only what it could reach');
+  const greedy = Geo.chainFragments([near_, far]);
+  check('chainFragments: without a limit it takes everything', greedy.dropped.length === 0);
+}
+check('chainFragments: copes with nothing', Geo.chainFragments([]).coords.length === 0);
+check('chainFragments: ignores degenerate one-point fragments',
+  Geo.chainFragments([[[33.75, -84.4]]]).coords.length === 0);
+
+// --- the real corridor ------------------------------------------------------
 {
   const corridor = JSON.parse(
     fs.readFileSync(path.join(__dirname, '..', 'data', 'beltline.geojson'), 'utf8')
   );
-  const spine = [];
-  for (const feature of corridor.features) {
-    const pts = feature.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-    spine.push(...(spine.length ? pts.slice(1) : pts));
-  }
-  const cum = Geo.cumulative(spine);
-  const total = cum[cum.length - 1];
-
-  near(total / 1609.344, 20.4, 1.5, 'corridor: loop is roughly 22 miles');
-  check(
-    'corridor: ring is closed',
-    Geo.haversine(spine[0], spine[spine.length - 1]) < 1,
-    `endpoints are ${Geo.haversine(spine[0], spine[spine.length - 1])} m apart`
-  );
-
-  // Every access point is meant to sit on the corridor it belongs to. This is
-  // the invariant that catches the line and the markers drifting apart, which
-  // is what a hand-traced alignment gets wrong first.
   const access = JSON.parse(
     fs.readFileSync(path.join(__dirname, '..', 'data', 'access-points.geojson'), 'utf8')
   );
+
+  const trail = corridor.features.filter((f) => !f.properties.spur);
+  const built = trail.reduce((sum, f) => sum + f.properties.lengthMeters, 0);
+  near(built / 1609.344, 19.2, 2.5, 'corridor: the built trail is around 19 miles');
+  check('corridor: every segment has a known status',
+    corridor.features.every((f) =>
+      ['open', 'interim', 'construction', 'planned', 'closed'].includes(f.properties.status)),
+    corridor.features.map((f) => f.properties.status).join(', '));
+  check('corridor: statuses are not all the same',
+    new Set(corridor.features.map((f) => f.properties.status)).size > 1);
+  check('corridor: every segment came from OSM',
+    corridor.features.every((f) => f.properties.source === 'OpenStreetMap'));
+  check('corridor: lengths are recorded and positive',
+    corridor.features.every((f) => f.properties.lengthMeters > 100));
+
+  const lines = trail.map((f) => f.geometry.coordinates.map(([lng, lat]) => [lat, lng]));
+  const chained = Geo.chainFragments(lines, { maxBridge: 2500 });
+  const spine = chained.coords;
+  const cum = Geo.cumulative(spine);
+
+  check('corridor: the spine picks up nearly every segment',
+    chained.dropped.length <= 1, `${chained.dropped.length} dropped`);
+  // The spine bridges real gaps, but never by more than the limit.
+  check('corridor: no bridge exceeds the limit',
+    Math.max(...chained.bridges) <= 2500, `${Math.round(Math.max(...chained.bridges))} m`);
+
+  // Access points are snapped onto the corridor at build time, so any drift
+  // here means the geometry and the markers were generated out of step.
   let worst = { offset: -1, name: null };
   for (const feature of access.features) {
     const [lng, lat] = feature.geometry.coordinates;
     const snap = Geo.nearestOnPath([lat, lng], spine, cum);
     if (snap.offset > worst.offset) worst = { offset: snap.offset, name: feature.properties.name };
   }
-  check(
-    'corridor: every access point sits on the corridor',
-    worst.offset < 60,
-    `furthest is "${worst.name}" at ${worst.offset.toFixed(0)} m`
-  );
+  check('corridor: every access point sits on the corridor', worst.offset < 60,
+    `furthest is "${worst.name}" at ${worst.offset.toFixed(0)} m`);
+  check('corridor: every access point records how far it was snapped',
+    access.features.every((f) => Number.isFinite(f.properties.snappedMeters)));
 
   const byName = (name) => {
     const f = access.features.find((x) => x.properties.name === name);
     const [lng, lat] = f.geometry.coordinates;
     return Geo.nearestOnPath([lat, lng], spine, cum);
   };
-  const pcm = byName('Ponce City Market');
-  const krog = byName('Krog Street Market');
-  const lindbergh = byName('Lindbergh Center MARTA');
 
-  // Ponce City Market and Krog Street Market are a bit over a mile apart on
-  // the trail; if the Eastside trace drifts, this is where it shows.
-  near(
-    Geo.slicePath(spine, cum, pcm.along, krog.along, true).distance / 1609.344,
-    1.28,
-    0.25,
-    'corridor: PCM to Krog matches the published Eastside distance'
-  );
+  // Ponce City Market to Krog Street Market is a bit over a mile of Eastside
+  // Trail. Both sit on continuous, built trail, so this is a real check on the
+  // geometry rather than on gap-bridging.
+  const walk = Geo.slicePath(spine, cum, byName('Ponce City Market').along,
+    byName('Krog Street Market').along, false);
+  near(walk.distance / 1609.344, 1.25, 0.35,
+    'corridor: PCM to Krog matches the published Eastside distance');
+  near(Geo.pathLength(walk.points), walk.distance, 5,
+    'corridor: PCM to Krog drawn length matches reported');
 
-  const walk = Geo.slicePath(spine, cum, pcm.along, krog.along, true);
-  near(walk.distance / 1609.344, 1.2, 0.4, 'corridor: PCM to Krog is about a mile of trail');
-  near(
-    Geo.pathLength(walk.points),
-    walk.distance,
-    5,
-    'corridor: PCM to Krog drawn length matches reported'
-  );
-
-  // Piedmont Park sits between Lindbergh and PCM on the Northeast Trail, so
-  // Lindbergh to PCM must run down the northeast side, not round via West End.
-  const north = Geo.slicePath(spine, cum, lindbergh.along, pcm.along, true);
-  check(
-    'corridor: Lindbergh to PCM takes the short way',
-    north.distance < total / 2,
-    `${(north.distance / 1609.344).toFixed(2)} mi of a ${(total / 1609.344).toFixed(2)} mi loop`
-  );
-  near(
-    Geo.pathLength(north.points),
-    north.distance,
-    5,
-    'corridor: Lindbergh to PCM drawn length matches reported'
-  );
+  // Memorial Drive is south of both, and further from PCM than Krog is.
+  const memorial = byName('Memorial Drive').along;
+  const pcm = byName('Ponce City Market').along;
+  const krog = byName('Krog Street Market').along;
+  check('corridor: the Eastside stops fall in geographic order along the spine',
+    (pcm < krog && krog < memorial) || (pcm > krog && krog > memorial),
+    `PCM ${Math.round(pcm)}, Krog ${Math.round(krog)}, Memorial ${Math.round(memorial)}`);
 }
 
 // --- formatting -------------------------------------------------------------

@@ -225,16 +225,40 @@
     return res.json();
   }
 
+  /** Two fragments closer than this are treated as the same continuous trail. */
+  const SPINE_LOOP_TOLERANCE_M = 1500;
+
+  /**
+   * A fragment further than this from either end of the chain is left out of
+   * the routing spine. It is still drawn; it just cannot be routed along,
+   * because reaching it would mean a straight line across miles of city.
+   */
+  const SPINE_MAX_BRIDGE_M = 2500;
+
   /**
    * Flatten the corridor's segments into one path for routing.
    *
-   * Segments that share an endpoint are joined; the shared vertex is dropped
-   * so it is not counted twice. If the result comes back to where it started,
-   * it is treated as a loop and routing may travel either way round.
+   * The corridor is not one line and not in order: it arrives as separate
+   * segments, and the real trail has genuine gaps where it has not been built.
+   * So the fragments are chained greedily — repeatedly attach whichever
+   * remaining fragment begins or ends nearest the current end, flipping it if
+   * that is the end that matches. Routing then treats a gap as a straight line
+   * across it, which is what walking it would involve anyway.
+   *
+   * This also runs on imported corridors, where the ordering is whatever the
+   * exporter happened to emit.
    */
   function rebuildSpine() {
     const lines = corridor.features
-      .filter((f) => f.geometry && f.geometry.type === 'LineString')
+      .filter(
+        (f) =>
+          f.geometry &&
+          f.geometry.type === 'LineString' &&
+          f.geometry.coordinates.length > 1 &&
+          // Spurs are dead ends. Chaining one in sends every route down it and
+          // straight back out again.
+          !(f.properties || {}).spur
+      )
       .map((f) => f.geometry.coordinates.map(([lng, lat]) => [lat, lng]));
 
     if (!lines.length) {
@@ -244,15 +268,19 @@
       return;
     }
 
-    const joined = [...lines[0]];
-    for (let i = 1; i < lines.length; i++) {
-      const gap = Geo.haversine(joined[joined.length - 1], lines[i][0]);
-      joined.push(...(gap < 1 ? lines[i].slice(1) : lines[i]));
+    const chained = Geo.chainFragments(lines, { maxBridge: SPINE_MAX_BRIDGE_M });
+    const ordered = chained.coords;
+    if (chained.dropped.length) {
+      console.info(
+        `${chained.dropped.length} corridor fragment(s) are too far from the rest to route ` +
+          'along; they are drawn but left out of the routing spine.'
+      );
     }
 
-    spine = joined;
-    spineCum = Geo.cumulative(joined);
-    spineIsLoop = Geo.haversine(joined[0], joined[joined.length - 1]) < 25;
+    spine = ordered;
+    spineCum = Geo.cumulative(ordered);
+    spineIsLoop =
+      Geo.haversine(ordered[0], ordered[ordered.length - 1]) < SPINE_LOOP_TOLERANCE_M;
   }
 
   // ------------------------------------------------------------------- pins

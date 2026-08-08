@@ -146,6 +146,72 @@
     };
   }
 
+  /**
+   * Order a set of disjoint polylines into one continuous path.
+   *
+   * Real trail data arrives as separate fragments in whatever order the
+   * exporter emitted, pointing in whatever direction they were drawn, with
+   * genuine gaps where the trail has not been built. This chains them
+   * greedily: repeatedly attach whichever remaining fragment starts or ends
+   * nearest either end of the path so far, reversing it when that is the end
+   * that matches.
+   *
+   * Growing from both ends matters — growing only from the tail walks one way
+   * around a loop and then has to jump back across everything to collect
+   * whatever belonged before the starting fragment.
+   *
+   * Fragments further than `maxBridge` from both ends are left out rather than
+   * reached for, since joining them would invent a straight line across the
+   * gap. They come back in `dropped`.
+   *
+   * @param {Array<Array<[number,number]>>} lines
+   * @param {object} [options] { maxBridge } in metres
+   * @returns {{coords, bridges, dropped}}
+   */
+  function chainFragments(lines, options) {
+    const maxBridge = (options && options.maxBridge) || Infinity;
+    const usable = lines.filter((line) => line && line.length > 1);
+    if (!usable.length) return { coords: [], bridges: [], dropped: [] };
+
+    const pool = usable.slice(1);
+    const coords = usable[0].slice();
+    const bridges = [];
+
+    while (pool.length) {
+      const head = coords[0];
+      const tail = coords[coords.length - 1];
+      let best = null;
+
+      pool.forEach((line, index) => {
+        const start = line[0];
+        const end = line[line.length - 1];
+        const options_ = [
+          { distance: haversine(tail, start), at: 'tail', flip: false },
+          { distance: haversine(tail, end), at: 'tail', flip: true },
+          { distance: haversine(head, end), at: 'head', flip: false },
+          { distance: haversine(head, start), at: 'head', flip: true },
+        ];
+        for (const option of options_) {
+          if (!best || option.distance < best.distance) best = { ...option, index };
+        }
+      });
+
+      if (!best || best.distance > maxBridge) break;
+
+      const [line] = pool.splice(best.index, 1);
+      const piece = best.flip ? line.slice().reverse() : line;
+      bridges.push(best.distance);
+      // Drop the shared vertex when the fragments actually touch.
+      if (best.at === 'tail') {
+        coords.push(...(best.distance < 1 ? piece.slice(1) : piece));
+      } else {
+        coords.unshift(...(best.distance < 1 ? piece.slice(0, -1) : piece));
+      }
+    }
+
+    return { coords, bridges, dropped: pool };
+  }
+
   function bounds(coordsList) {
     let s = Infinity;
     let w = Infinity;
@@ -182,6 +248,7 @@
     nearestOnPath,
     pointAtAlong,
     slicePath,
+    chainFragments,
     bounds,
     formatDistance,
     formatDuration,

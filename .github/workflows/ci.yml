@@ -1,0 +1,26 @@
+name: Tests
+
+# Pages only deploys from main, so pull requests need their own test run —
+# otherwise a branch could go red and nobody would know until after the merge.
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check the bundled data is in step with its source
+        run: |
+          node tools/build-data.js
+          git diff --exit-code -- data/ \
+            || (echo "::error::data/ is stale — run 'node tools/build-data.js' and commit the result" && exit 1)
+      - name: Geometry tests
+        run: node tests/geo.test.js
+      - name: Place search tests
+        run: node tests/geocode.test.js

@@ -1,13 +1,16 @@
 name: Deploy to GitHub Pages
 
 # The site is plain static files, so there is nothing to build — the repository
-# root is published as-is. Deploying from the feature branch as well as main
-# means the live page tracks work in progress instead of waiting on a merge.
+# root is published as-is.
+#
+# Deploys run from the default branch only. GitHub's `github-pages` environment
+# refuses deployments from any other branch by default, and that refusal happens
+# before the job's first step, so a feature-branch deploy fails with no log to
+# read. Preview a branch by allowing it under Settings -> Environments ->
+# github-pages -> Deployment branches.
 on:
   push:
-    branches:
-      - main
-      - claude/atlanta-beltline-map-pot2fl
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -48,6 +51,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+        # Turns Pages on if it is not already, so there is no Settings toggle
+        # to remember. Needs the `pages: write` permission above.
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .

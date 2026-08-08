@@ -1,13 +1,14 @@
 # Atlanta BeltLine Trail Planner
 
-A map of Atlanta with the full BeltLine loop traced on it. Show or hide the access
-points, drop pins anywhere, drag them into the order you want to visit them, and the
-app links them into a route that follows the trail. Download the result as GeoJSON,
+A map of Atlanta with the BeltLine drawn from OpenStreetMap data, coloured by whether
+each stretch is open, interim or still planned. Search for a place, show or hide the
+access points, drop pins anywhere, drag them into the order you want to visit them, and
+the app links them into a route that follows the trail. Download the result as GeoJSON,
 GPX, KML or CSV.
 
 No build step and no server required — open `index.html` and it runs.
 
-![The planner with a four-stop route along the loop](docs/screenshot.png)
+![The planner with a four-stop route along the BeltLine](docs/screenshot.png)
 
 *Captured without basemap tiles, so the corridor and the route read clearly. In a
 browser with a network connection the loop sits on top of the usual map.*
@@ -28,14 +29,20 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 
 ### Live on GitHub Pages
 
-`.github/workflows/pages.yml` publishes the site on every push to `main` or the feature
-branch. It needs enabling once: **Settings → Pages → Source → GitHub Actions**. After
-that the site is at `https://liambarnum.github.io/atlantamap/` and updates itself on
-each push.
+`.github/workflows/pages.yml` publishes the site to
+`https://liambarnum.github.io/atlantamap/` on every push to `main`, and turns Pages on
+itself the first time it runs — there is no Settings toggle to remember.
+
+**Deploys run from `main` only.** GitHub's `github-pages` environment refuses
+deployments from any other branch by default, and it refuses them before the job's
+first step, so a feature-branch deploy fails in two seconds with no log to read. To
+preview a branch instead, allow it under **Settings → Environments → github-pages →
+Deployment branches**.
 
 The workflow runs the tests first and refuses to deploy if they fail. It also
 regenerates `data/` and fails if the result differs from what is committed, so the
-bundled data can never drift from `tools/build-data.js`.
+bundled data can never drift from its source. Pull requests get the same tests from
+`.github/workflows/ci.yml`.
 
 ## What it does
 
@@ -54,19 +61,23 @@ through are listed first. The list is the USPS definition, so Sandy Springs and 
 addresses resolve, because those carry Atlanta mailing addresses and someone typing one
 expects it to work.
 
-**The corridor.** All six named segments of the 22-mile loop, coloured by status —
-green for open, orange for building, grey for planned — with the same colour on the
-line, the legend swatch, the status badge and the filter chip, so the legend is a key
-rather than decoration. Nothing is dashed and every segment is the same weight, so
-colour is the only thing carrying meaning. Each segment can be hidden on its own,
-filtered out by status, or the whole corridor switched off. Clicking a segment shows
-its status, what that status means, and its length.
+**The corridor.** The BeltLine trails as OpenStreetMap has them, split into 17 named
+stretches and coloured by status — the same colour on the line, the legend swatch, the
+status badge and the filter chip, so the legend is a key rather than decoration.
+Nothing is dashed and every segment is the same weight, so colour is the only thing
+carrying meaning. Each stretch can be hidden on its own, filtered out by status, or the
+whole corridor switched off. Clicking one shows its status, what that status means, and
+its length.
 
 The statuses are **Open** (green), **Interim** (blue — walkable but not the finished
-surface), **Building** (orange), **Planned** (grey) and **Closed** (red).
-`tools/build-data.js` rejects any other value, so a typo cannot quietly become a sixth
-category. As currently mapped: Eastside, Westside and Westside Segment 4 are open;
-Southside and Northeast are building; Northwest is planned.
+surface), **Building** (orange), **Planned** (grey) and **Closed** (red), derived from
+the OSM tags. Anything outside that list fails the build, so a typo cannot quietly
+become a sixth category. As currently mapped: 19.2 miles of trail, of which 14 stretches
+are open, 2 are interim and one short piece of the Northeast Trail is still proposed.
+
+**The gaps in the loop are real.** The BeltLine is not continuous yet, and segments are
+never bridged across anything wider than a street crossing, so where the map shows a
+break there is no trail.
 
 **Access points.** 51 trailheads, park entrances, transit connections and street
 crossings. Toggle the whole layer, filter by type with the chips, or filter by name,
@@ -133,20 +144,25 @@ goes straight to Nominatim, which needs no key.
 
 ## About the bundled data
 
-**The corridor and access point positions in this repository are hand-traced
-approximations.** They are accurate to roughly a block, which is fine for planning a
-walk and not fine for anything that needs real precision. The traced loop measures
-20.4 miles against the real 22, because a hand trace cuts corners the rail bed does
-not.
+**The corridor is real OpenStreetMap geometry**, not an approximation. It is built from
+the Overpass export in `data/sources/` by `tools/osm.js`; that directory's README
+documents the query, what gets skipped and why, and how to refresh it.
 
-The Eastside Trail has had a correction pass, re-anchored on landmarks: the trail runs
-along the *east* side of Ponce City Market and forms the east edge of Historic Fourth
-Ward Park, and Krog Street Market sits at Irwin Street rather than a few hundred metres
-north of it. The earlier trace had that stretch roughly 150 m too far west. The other
-five segments have not had the same pass and are the weaker part of the dataset.
+Earlier versions of this repository shipped a hand-traced corridor. It was wrong by up
+to 1.4 km in places, particularly north of Ponce, and has been replaced entirely.
+
+**The access points are the weaker half.** Their names, types, amenities and
+descriptions are hand-curated and good; their *positions* were hand-guessed against the
+old trace. The build snaps each one onto the real corridor and records the distance in
+a `snappedMeters` property, and 14 of the 51 had to move more than 400 m — the worst
+being Piedmont Road at 1.4 km. Snapping puts every marker on the trail, which is a
+strict improvement, but for those 14 it puts them at the point of the trail nearest a
+poor guess, which is not necessarily the right place. `node tools/build-data.js` prints
+the list. Anything on the Eastside, Southside or Westside is in decent shape; the
+northern ones are worth checking against a map.
 
 `tests/geo.test.js` enforces that every access point sits within 60 m of the corridor,
-so the line and the markers cannot drift apart unnoticed.
+so the geometry and the markers cannot be generated out of step.
 
 Two ways to replace it with the real alignment:
 
@@ -154,29 +170,17 @@ Two ways to replace it with the real alignment:
 **Import a file…**, and say yes when asked whether to replace the corridor. Routing,
 lengths and the legend all pick it up immediately. This does not touch the repository.
 
-**Bake it in.** Edit the coordinate tables in `tools/build-data.js` and regenerate:
+**Bake it in.** Drop a fresh Overpass export over
+`data/sources/osm-beltline-trails.geojson` and regenerate:
 
 ```sh
 node tools/build-data.js
 ```
 
-That writes all four files in `data/`. It refuses to emit anything if the segments no
-longer join end to end or the loop fails to close, which is the failure that would
-otherwise show up later as routing quietly taking the long way round.
+That writes all four files in `data/`, re-snaps the access points, and prints which of
+them had to move a long way.
 
-Two sources worth pulling from, neither of which was reachable from the environment
-this was built in:
-
-```sh
-# OpenStreetMap, via Overpass
-curl -G https://overpass-api.de/api/interpreter --data-urlencode '
-  [out:json][timeout:60];
-  rel["name"~"Atlanta BeltLine"]["route"="foot"](33.6,-84.6,33.9,-84.2);
-  out geom;'
-```
-
-The City of Atlanta and Atlanta Regional Commission also publish BeltLine layers
-through their ArcGIS open data portals, which export GeoJSON directly.
+See `data/sources/README.md` for the Overpass query and how to refresh the export.
 
 ## Layout
 
@@ -191,7 +195,8 @@ js/exporters.js         GeoJSON/GPX/KML/CSV out, GeoJSON/GPX/KML in
 js/app.js               state, routing, rendering, event wiring
 data/*.geojson          the corridor and access points
 data/*.js               the same data as plain scripts, so file:// works
-tools/build-data.js     source of truth for both; regenerates data/
+tools/osm.js            OSM export -> named, status-tagged, chained segments
+tools/build-data.js     runs that, snaps the access points, regenerates data/
 tests/geo.test.js       tests for the routing math
 tests/geocode.test.js   tests for the Atlanta search restriction
 data/sources/           raw exports kept for reference; see its README
@@ -199,7 +204,7 @@ vendor/leaflet/         Leaflet 1.9.4 (BSD-2-Clause)
 ```
 
 Coordinates are `[lat, lng]` everywhere inside the app, and flipped to GeoJSON's
-`[lng, lat]` only at the boundaries — in `tools/build-data.js` on the way in and
+`[lng, lat]` only at the boundaries — in `tools/osm.js` on the way in and
 `js/exporters.js` on the way out.
 
 ## Tests
@@ -208,17 +213,18 @@ Coordinates are `[lat, lng]` everywhere inside the app, and flipped to GeoJSON's
 npm test          # or: node tests/geo.test.js && node tests/geocode.test.js
 ```
 
-47 checks over the geometry: haversine against known distances, projection onto a
-path, and the loop slicing — including that it takes the shorter way round, that
-crossing the seam in the coordinate list does not produce a line across the city, and
-that the drawn line is always as long as the distance reported for it. The last group
-runs against the real corridor data rather than a synthetic path.
+62 checks over the geometry: haversine against known distances, projection onto a path,
+loop slicing — including that it takes the shorter way round, that crossing the seam in
+the coordinate list does not produce a line across the city, and that the drawn line is
+always as long as the distance reported for it — and the fragment chaining that turns
+17 disjoint segments into one routable path. The last group runs against the real
+corridor rather than a synthetic one.
 
 `tests/geocode.test.js` adds 30 checks over the Atlanta restriction: ZIP extraction,
 which suburbs are kept and which are dropped, the no-postcode fallback, and the
 BeltLine-first ranking.
 
-The UI was developed against a Playwright script of 150 checks covering the layers,
+The UI was developed against a Playwright script of 151 checks covering the layers,
 segment statuses and status filtering, place search (with the geocoder stubbed, including
 its empty and unreachable paths and that out-of-town results are filtered out), pin
 dropping, every reordering path, routing modes,
@@ -226,7 +232,7 @@ all four export formats, import round trips, share links and persistence.
 
 ## Credits
 
-Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors
-(ODbL). [Leaflet](https://leafletjs.com/) is BSD-2-Clause, vendored under
+The corridor geometry and the basemap are both
+© [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, ODbL. [Leaflet](https://leafletjs.com/) is BSD-2-Clause, vendored under
 `vendor/leaflet/`. The BeltLine geometry here is an independent approximation and is
 not affiliated with or endorsed by Atlanta BeltLine, Inc.

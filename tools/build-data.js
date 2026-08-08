@@ -1,276 +1,47 @@
 #!/usr/bin/env node
 /**
- * Source of truth for the map's bundled data.
+ * Builds the data the app reads.
  *
- * Coordinates below are written [lat, lng] because that is how you read them
- * off a map. GeoJSON wants [lng, lat], so the emitter flips them exactly once,
- * here, instead of scattering the chance of a transposed pair across the app.
+ * The corridor comes from an OpenStreetMap export in data/sources/, converted
+ * by tools/osm.js into named segments with a status each. The access points are
+ * hand-curated here for their names, amenities and descriptions, and then
+ * snapped onto the OSM geometry so the markers sit on the trail rather than
+ * near it.
  *
  * Run: node tools/build-data.js
  * Emits: data/beltline.geojson, data/access-points.geojson and .js copies of
  * each (the .js copies exist so index.html works when opened straight off
  * disk, where fetch() of a local file is blocked by the browser).
  *
- * ---------------------------------------------------------------------------
- * ACCURACY: the corridor geometry is hand-traced from known Atlanta geography,
- * not surveyed data. It is good enough to see the loop and plan along it, and
- * it is wrong by up to a block or so in places. See README for how to replace
- * it with the official alignment.
- * ---------------------------------------------------------------------------
+ * Coordinates are written [lat, lng] below because that is how you read them
+ * off a map. GeoJSON wants [lng, lat], so the emitter flips them exactly once.
  */
 
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+const { buildSegments, haversine, lengthMeters } = require('./osm.js');
 
 const ROOT = path.join(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data');
+const SOURCE = path.join(DATA_DIR, 'sources', 'osm-beltline-trails.geojson');
 
 /**
- * Status vocabulary. Segments are all drawn the same way on the map — status
- * is information, not styling — so these strings are what the legend badge and
- * the status filter read from. Anything not in this list fails the build.
+ * Status vocabulary. tools/osm.js derives these from the OSM tags; anything
+ * outside this list fails the build.
  */
 const STATUSES = ['open', 'interim', 'construction', 'planned', 'closed'];
 
-/**
- * The loop, split into the segments the BeltLine is actually named and built
- * in. Each segment starts on the previous segment's last coordinate so the
- * whole thing concatenates into one closed ring; buildSpine() asserts this.
- */
-const SEGMENTS = [
-  {
-    id: 'eastside',
-    name: 'Eastside Trail',
-    status: 'open',
-    note: 'Piedmont Park to Memorial Drive, through Ponce City Market and Krog Street Market.',
-    // Re-anchored on landmarks: the trail runs along the EAST side of Ponce
-    // City Market and forms the east edge of Historic Fourth Ward Park, and
-    // Krog Street Market sits at Irwin Street rather than well north of it.
-    coords: [
-      [33.7845, -84.3699],
-      [33.7832, -84.3695],
-      [33.7822, -84.3691],
-      [33.7808, -84.3683],
-      [33.7795, -84.3675],
-      [33.7782, -84.3667],
-      [33.7770, -84.3661],
-      [33.7757, -84.3655],
-      [33.7742, -84.3648],
-      [33.7734, -84.3645],
-      [33.7726, -84.3643],
-      [33.7719, -84.3641],
-      [33.7714, -84.3640],
-      [33.7707, -84.3638],
-      [33.7700, -84.3637],
-      [33.7692, -84.3635],
-      [33.7683, -84.3633],
-      [33.7670, -84.3632],
-      [33.7663, -84.3631],
-      [33.7656, -84.3630],
-      [33.7649, -84.3629],
-      [33.7642, -84.3629],
-      [33.7633, -84.3628],
-      [33.7625, -84.3628],
-      [33.7616, -84.3629],
-      [33.7608, -84.3629],
-      [33.7600, -84.3631],
-      [33.7592, -84.3632],
-      [33.7584, -84.3634],
-      [33.7576, -84.3635],
-      [33.7568, -84.3637],
-      [33.7560, -84.3639],
-      [33.7552, -84.3641],
-      [33.7546, -84.3643],
-      [33.7539, -84.3642],
-      [33.7532, -84.3641],
-      [33.7525, -84.3637],
-      [33.7518, -84.3632],
-      [33.7511, -84.3626],
-      [33.7504, -84.3620],
-      [33.7497, -84.3613],
-      [33.7490, -84.3607],
-      [33.7482, -84.3599],
-      [33.7474, -84.3592],
-      [33.7466, -84.3585],
-      [33.7458, -84.3578],
-      [33.7451, -84.3572],
-      [33.7445, -84.3566],
-      [33.7434, -84.3556],
-    ],
-  },
-  {
-    id: 'southside',
-    name: 'Southside Trail',
-    status: 'construction',
-    note: 'Memorial Drive to University Avenue. Paved conversion is phased; interim surface in places.',
-    coords: [
-      [33.7434, -84.3556],
-      [33.7422, -84.3557],
-      [33.7405, -84.3560],
-      [33.7388, -84.3566],
-      [33.7370, -84.3572],
-      [33.7352, -84.3582],
-      [33.7330, -84.3600],
-      [33.7315, -84.3620],
-      [33.7300, -84.3642],
-      [33.7285, -84.3668],
-      [33.7272, -84.3690],
-      [33.7262, -84.3706],
-      [33.7252, -84.3722],
-      [33.7244, -84.3745],
-      [33.7236, -84.3768],
-      [33.7228, -84.3792],
-      [33.7220, -84.3818],
-      [33.7212, -84.3845],
-      [33.7202, -84.3872],
-      [33.7192, -84.3898],
-      [33.7180, -84.3925],
-      [33.7168, -84.3950],
-      [33.7155, -84.3975],
-      [33.7142, -84.4000],
-      [33.7130, -84.4022],
-      [33.7122, -84.4042],
-      [33.7115, -84.4060],
-    ],
-  },
-  {
-    id: 'westside',
-    name: 'Westside Trail',
-    status: 'open',
-    note: 'University Avenue to Washington Park, through Adair Park, Pittsburgh and West End.',
-    coords: [
-      [33.7115, -84.4060],
-      [33.7128, -84.4070],
-      [33.7145, -84.4080],
-      [33.7162, -84.4090],
-      [33.7180, -84.4098],
-      [33.7198, -84.4102],
-      [33.7215, -84.4105],
-      [33.7232, -84.4108],
-      [33.7250, -84.4110],
-      [33.7268, -84.4118],
-      [33.7290, -84.4128],
-      [33.7308, -84.4138],
-      [33.7325, -84.4148],
-      [33.7342, -84.4157],
-      [33.7360, -84.4165],
-      [33.7378, -84.4178],
-      [33.7400, -84.4195],
-      [33.7420, -84.4210],
-      [33.7440, -84.4225],
-      [33.7460, -84.4238],
-      [33.7480, -84.4250],
-      [33.7500, -84.4258],
-      [33.7520, -84.4265],
-      [33.7538, -84.4269],
-      [33.7555, -84.4272],
-    ],
-  },
-  {
-    id: 'westside-segment-4',
-    name: 'Westside Trail — Segment 4',
-    status: 'open',
-    note: 'Washington Park north to Westside Park at Bellwood Quarry.',
-    coords: [
-      [33.7555, -84.4272],
-      [33.7575, -84.4278],
-      [33.7600, -84.4285],
-      [33.7625, -84.4292],
-      [33.7650, -84.4300],
-      [33.7675, -84.4305],
-      [33.7700, -84.4310],
-      [33.7725, -84.4313],
-      [33.7750, -84.4315],
-      [33.7775, -84.4318],
-      [33.7800, -84.4320],
-      [33.7822, -84.4320],
-      [33.7845, -84.4318],
-      [33.7862, -84.4310],
-      [33.7875, -84.4300],
-    ],
-  },
-  {
-    id: 'northwest',
-    name: 'Northwest Trail',
-    status: 'planned',
-    note: 'Westside Park to Peachtree Creek, via Chattahoochee Avenue, Bobby Jones and Tanyard Creek.',
-    coords: [
-      [33.7875, -84.4300],
-      [33.7890, -84.4320],
-      [33.7905, -84.4340],
-      [33.7922, -84.4352],
-      [33.7935, -84.4355],
-      [33.7950, -84.4345],
-      [33.7962, -84.4328],
-      [33.7975, -84.4305],
-      [33.7986, -84.4280],
-      [33.7996, -84.4252],
-      [33.8005, -84.4220],
-      [33.8016, -84.4195],
-      [33.8028, -84.4172],
-      [33.8040, -84.4150],
-      [33.8052, -84.4126],
-      [33.8065, -84.4100],
-      [33.8076, -84.4076],
-      [33.8085, -84.4050],
-      [33.8092, -84.4024],
-      [33.8095, -84.3995],
-      [33.8090, -84.3972],
-      [33.8080, -84.3950],
-      [33.8085, -84.3925],
-      [33.8095, -84.3900],
-      [33.8105, -84.3872],
-      [33.8118, -84.3845],
-      [33.8130, -84.3818],
-      [33.8140, -84.3790],
-    ],
-  },
-  {
-    id: 'northeast',
-    name: 'Northeast Trail',
-    status: 'construction',
-    note: 'Armour Yards and Lindbergh south through Piedmont Heights and Ansley back to Piedmont Park.',
-    coords: [
-      [33.8140, -84.3790],
-      [33.8146, -84.3765],
-      [33.8150, -84.3740],
-      [33.8158, -84.3718],
-      [33.8168, -84.3700],
-      [33.8180, -84.3686],
-      [33.8195, -84.3678],
-      [33.8215, -84.3672],
-      [33.8212, -84.3655],
-      [33.8202, -84.3640],
-      [33.8188, -84.3630],
-      [33.8170, -84.3625],
-      [33.8152, -84.3626],
-      [33.8135, -84.3632],
-      [33.8118, -84.3640],
-      [33.8100, -84.3646],
-      [33.8082, -84.3650],
-      [33.8065, -84.3652],
-      [33.8050, -84.3655],
-      [33.8032, -84.3660],
-      [33.8012, -84.3665],
-      [33.7995, -84.3672],
-      [33.7975, -84.3680],
-      [33.7958, -84.3688],
-      [33.7940, -84.3695],
-      [33.7922, -84.3698],
-      [33.7905, -84.3700],
-      [33.7888, -84.3701],
-      [33.7870, -84.3701],
-      [33.7857, -84.3700],
-      [33.7845, -84.3699],
-    ],
-  },
-];
+/** An access point further than this from the trail gets called out for review. */
+const SNAP_REVIEW_M = 400;
 
 /**
  * Trailheads and street crossings. `type` drives the marker icon and the
  * filter chips; `amenities` is free-form and only shown in the popup.
+ *
+ * The coordinates here are approximate by hand; the build snaps each one onto
+ * the nearest point of the real corridor and records how far it moved.
  */
 const ACCESS_POINTS = [
   // --- Eastside Trail ---
@@ -335,61 +106,48 @@ const ACCESS_POINTS = [
   ['Monroe Drive / Ansley', 33.7905, -84.3700, 'northeast', 'street', ['bus'], 'Street crossing.'],
 ];
 
+
 // --- geometry helpers -------------------------------------------------------
 
-const R_EARTH_M = 6371008.8;
+/** Nearest point on a polyline to `pt`, in metres. Flat-earth is fine at city scale. */
+function nearestOnPath(pt, coords) {
+  const mPerDegLat = 110574;
+  const mPerDegLng = 111320 * Math.cos((pt[0] * Math.PI) / 180);
+  const to = ([lat, lng]) => [lng * mPerDegLng, lat * mPerDegLat];
+  const from = ([x, y]) => [y / mPerDegLat, x / mPerDegLng];
+  const p = to(pt);
+  let best = null;
 
-function haversine([lat1, lon1], [lat2, lon2]) {
-  const toRad = (d) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R_EARTH_M * Math.asin(Math.sqrt(a));
+  for (let i = 1; i < coords.length; i++) {
+    const a = to(coords[i - 1]);
+    const b = to(coords[i]);
+    const abx = b[0] - a[0];
+    const aby = b[1] - a[1];
+    const lenSq = abx * abx + aby * aby;
+    let t = lenSq === 0 ? 0 : ((p[0] - a[0]) * abx + (p[1] - a[1]) * aby) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    const cx = a[0] + t * abx;
+    const cy = a[1] + t * aby;
+    const dSq = (p[0] - cx) ** 2 + (p[1] - cy) ** 2;
+    if (!best || dSq < best.dSq) best = { dSq, point: from([cx, cy]) };
+  }
+
+  return best ? { point: best.point, offset: Math.sqrt(best.dSq) } : null;
 }
 
-function lengthMeters(coords) {
-  let total = 0;
-  for (let i = 1; i < coords.length; i++) total += haversine(coords[i - 1], coords[i]);
-  return total;
-}
-
-const same = (a, b) => a[0] === b[0] && a[1] === b[1];
-
-/**
- * Concatenate the segments into one closed ring, dropping the duplicated
- * shared endpoint between each pair. Throws if the segments don't actually
- * meet — a silent gap here would quietly break follow-the-corridor routing.
- */
-function buildSpine(segments) {
-  const spine = [...segments[0].coords];
-  for (let i = 1; i < segments.length; i++) {
-    const prev = segments[i - 1];
-    const cur = segments[i];
-    if (!same(prev.coords[prev.coords.length - 1], cur.coords[0])) {
-      throw new Error(`segment "${cur.id}" does not start where "${prev.id}" ends`);
+/** Snap a point onto whichever segment passes closest to it. */
+function snapToCorridor(pt, segments) {
+  let best = null;
+  for (const segment of segments) {
+    const hit = nearestOnPath(pt, segment.coords);
+    if (hit && (!best || hit.offset < best.offset)) {
+      best = { ...hit, segment: segment.id, segmentName: segment.name };
     }
-    spine.push(...cur.coords.slice(1));
   }
-  const last = segments[segments.length - 1].coords.slice(-1)[0];
-  if (!same(last, segments[0].coords[0])) {
-    throw new Error('the loop does not close: last segment must end at the first segment start');
-  }
-  return spine;
+  return best;
 }
 
 // --- emitters ---------------------------------------------------------------
-
-function assertStatuses(segments) {
-  for (const seg of segments) {
-    if (!STATUSES.includes(seg.status)) {
-      throw new Error(
-        `segment "${seg.id}" has status "${seg.status}"; expected one of ${STATUSES.join(', ')}`
-      );
-    }
-  }
-}
 
 function corridorGeoJSON(segments) {
   return {
@@ -397,9 +155,13 @@ function corridorGeoJSON(segments) {
     name: 'Atlanta BeltLine corridor',
     metadata: {
       description:
-        'Approximate centerline of the 22-mile Atlanta BeltLine loop, split by named trail segment.',
-      accuracy:
-        'Hand-traced from known geography, not survey data. Replace with the official alignment for anything that matters.',
+        'The Atlanta BeltLine trails, split by named segment and build status.',
+      source:
+        'OpenStreetMap, via an Overpass export in data/sources/osm-beltline-trails.geojson. ' +
+        'Map data (c) OpenStreetMap contributors, ODbL.',
+      note:
+        'Gaps between segments are real: the loop is not continuous yet. Segments are not ' +
+        'bridged across anything wider than a street crossing.',
       generatedBy: 'tools/build-data.js',
     },
     features: segments.map((seg) => ({
@@ -409,39 +171,64 @@ function corridorGeoJSON(segments) {
         id: seg.id,
         name: seg.name,
         status: seg.status,
-        note: seg.note,
-        lengthMeters: Math.round(lengthMeters(seg.coords)),
+        note: seg.note || '',
+        source: seg.source,
+        spur: Boolean(seg.spur),
+        lengthMeters: seg.lengthMeters,
       },
       geometry: {
         type: 'LineString',
-        coordinates: seg.coords.map(([lat, lng]) => [lng, lat]),
+        coordinates: seg.coords.map(([lat, lng]) => [Number(lng.toFixed(6)), Number(lat.toFixed(6))]),
       },
     })),
   };
 }
 
-function accessGeoJSON(points) {
-  return {
-    type: 'FeatureCollection',
-    name: 'Atlanta BeltLine access points',
-    metadata: {
-      description: 'Trailheads, park entrances, transit connections and street crossings.',
-      accuracy: 'Approximate positions, snapped by eye to the corridor.',
-      generatedBy: 'tools/build-data.js',
-    },
-    features: points.map(([name, lat, lng, segment, type, amenities, description], i) => ({
+function accessGeoJSON(points, segments) {
+  const review = [];
+
+  const features = points.map(([name, lat, lng, segment, type, amenities, description], i) => {
+    const snap = snapToCorridor([lat, lng], segments);
+    const moved = snap ? snap.offset : 0;
+    if (moved > SNAP_REVIEW_M) review.push({ name, moved, landedOn: snap.segmentName });
+
+    const position = snap ? snap.point : [lat, lng];
+    return {
       type: 'Feature',
       id: `ap-${String(i + 1).padStart(3, '0')}`,
       properties: {
         id: `ap-${String(i + 1).padStart(3, '0')}`,
         name,
-        segment,
+        // The segment the point actually landed on, which is not always the
+        // one the hand-written table guessed.
+        segment: snap ? snap.segment : segment,
         type,
         amenities,
         description,
+        snappedMeters: Math.round(moved),
       },
-      geometry: { type: 'Point', coordinates: [lng, lat] },
-    })),
+      geometry: {
+        type: 'Point',
+        coordinates: [Number(position[1].toFixed(6)), Number(position[0].toFixed(6))],
+      },
+    };
+  });
+
+  return {
+    collection: {
+      type: 'FeatureCollection',
+      name: 'Atlanta BeltLine access points',
+      metadata: {
+        description: 'Trailheads, park entrances, transit connections and street crossings.',
+        note:
+          'Names and amenities are hand-curated. Positions are snapped onto the OpenStreetMap ' +
+          'corridor; snappedMeters records how far each moved, and a large value means the ' +
+          'hand-written starting guess was poor and the result is worth checking.',
+        generatedBy: 'tools/build-data.js',
+      },
+      features,
+    },
+    review,
   };
 }
 
@@ -451,29 +238,55 @@ function writeJSONPair(basename, globalName, obj) {
   // The .js twin lets index.html work from file:// where fetch() is blocked.
   fs.writeFileSync(
     path.join(DATA_DIR, `${basename}.js`),
-    `/* Generated by tools/build-data.js — do not edit. */\n` +
+    `/* Generated by tools/build-data.js - do not edit. */\n` +
       `window.${globalName} = ${json};\n`
   );
 }
 
 function main() {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(SOURCE)) {
+    throw new Error(`missing ${path.relative(ROOT, SOURCE)}; see data/sources/README.md`);
+  }
 
-  assertStatuses(SEGMENTS);
-  const spine = buildSpine(SEGMENTS);
-  const corridor = corridorGeoJSON(SEGMENTS);
-  const access = accessGeoJSON(ACCESS_POINTS);
+  const { segments, skipped } = buildSegments(JSON.parse(fs.readFileSync(SOURCE, 'utf8')), {
+    minLength: 150,
+  });
+  if (!segments.length) throw new Error('the OSM export produced no segments');
+
+  for (const seg of segments) {
+    if (!STATUSES.includes(seg.status)) {
+      throw new Error(
+        `segment "${seg.id}" has status "${seg.status}"; expected one of ${STATUSES.join(', ')}`
+      );
+    }
+  }
+
+  const corridor = corridorGeoJSON(segments);
+  const { collection: access, review } = accessGeoJSON(ACCESS_POINTS, segments);
 
   writeJSONPair('beltline', 'BELTLINE_CORRIDOR', corridor);
   writeJSONPair('access-points', 'BELTLINE_ACCESS_POINTS', access);
 
   const miles = (m) => (m / 1609.344).toFixed(2);
+  const total = segments.reduce((sum, seg) => sum + seg.lengthMeters, 0);
+
   console.log('Wrote data/beltline.{geojson,js} and data/access-points.{geojson,js}\n');
-  for (const seg of SEGMENTS) {
-    console.log(`  ${seg.name.padEnd(28)} ${miles(lengthMeters(seg.coords)).padStart(6)} mi  (${seg.status})`);
+  for (const seg of segments) {
+    console.log(
+      `  ${seg.name.padEnd(26)} ${miles(seg.lengthMeters).padStart(6)} mi  ${seg.status}`
+    );
   }
-  console.log(`  ${'TOTAL LOOP'.padEnd(28)} ${miles(lengthMeters(spine)).padStart(6)} mi`);
-  console.log(`  ${'access points'.padEnd(28)} ${String(ACCESS_POINTS.length).padStart(6)}`);
+  console.log(`  ${'TOTAL'.padEnd(26)} ${miles(total).padStart(6)} mi across ${segments.length} segments`);
+  console.log(`  ${'access points'.padEnd(26)} ${String(ACCESS_POINTS.length).padStart(6)}`);
+  console.log(`  ${'access spurs skipped'.padEnd(26)} ${String(skipped.spurs).padStart(6)}`);
+
+  if (review.length) {
+    console.log(`\n  ${review.length} access points moved more than ${SNAP_REVIEW_M} m onto the trail.`);
+    console.log('  Their names are right; the hand-written coordinates were not. Worth checking:');
+    for (const item of review.sort((a, b) => b.moved - a.moved)) {
+      console.log(`    ${String(Math.round(item.moved)).padStart(5)} m  ${item.name.padEnd(36)} -> ${item.landedOn}`);
+    }
+  }
 }
 
 main();
