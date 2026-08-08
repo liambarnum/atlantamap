@@ -26,8 +26,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3712,
-          33.7818
+          -84.3691,
+          33.7822
         ]
       }
     },
@@ -48,8 +48,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3706,
-          33.786
+          -84.3699,
+          33.7845
         ]
       }
     },
@@ -69,8 +69,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.369,
-          33.7786
+          -84.3667,
+          33.7782
         ]
       }
     },
@@ -90,8 +90,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.367,
-          33.7755
+          -84.3661,
+          33.777
         ]
       }
     },
@@ -115,7 +115,7 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3657,
+          -84.3643,
           33.7726
         ]
       }
@@ -136,8 +136,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3656,
-          33.7712
+          -84.364,
+          33.7714
         ]
       }
     },
@@ -155,7 +155,7 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3655,
+          -84.3637,
           33.77
         ]
       }
@@ -179,8 +179,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.366,
-          33.7666
+          -84.3632,
+          33.767
         ]
       }
     },
@@ -200,8 +200,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3655,
-          33.764
+          -84.3629,
+          33.7642
         ]
       }
     },
@@ -216,13 +216,13 @@ window.BELTLINE_ACCESS_POINTS = {
         "amenities": [
           "food"
         ],
-        "description": "Inman Park edge."
+        "description": "Inman Park edge, by Krog Street Market."
       },
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3648,
-          33.758
+          -84.3641,
+          33.7552
         ]
       }
     },
@@ -244,8 +244,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3646,
-          33.7554
+          -84.3643,
+          33.7546
         ]
       }
     },
@@ -263,8 +263,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.364,
-          33.7525
+          -84.3632,
+          33.7518
         ]
       }
     },
@@ -284,8 +284,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3616,
-          33.7495
+          -84.3607,
+          33.749
         ]
       }
     },
@@ -305,8 +305,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3595,
-          33.747
+          -84.3578,
+          33.7458
         ]
       }
     },
@@ -326,8 +326,8 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3565,
-          33.7444
+          -84.3556,
+          33.7434
         ]
       }
     },
@@ -347,7 +347,7 @@ window.BELTLINE_ACCESS_POINTS = {
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.3562,
+          -84.356,
           33.7405
         ]
       }

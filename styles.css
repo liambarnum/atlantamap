@@ -408,7 +408,13 @@ select, input[type="search"], input[type="password"], input[type="text"] {
 }
 .legend button:hover:not(:disabled) { background: var(--green-wash); }
 .legend button:disabled { cursor: not-allowed; }
-.legend .seg-eye { color: var(--green); font-size: 0.7rem; flex: none; }
+.legend .seg-swatch {
+  width: 22px;
+  height: 5px;
+  border-radius: 3px;
+  border: 2px solid;
+  flex: none;
+}
 .legend .seg-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .legend .seg-name {
   font-size: 0.82rem;
@@ -418,8 +424,7 @@ select, input[type="search"], input[type="password"], input[type="text"] {
 }
 .legend .seg-meta { display: flex; align-items: center; gap: 7px; }
 .legend .seg-len { color: var(--ink-faint); font-variant-numeric: tabular-nums; font-size: 0.72rem; }
-.legend .segment-hidden button { opacity: 0.45; }
-.legend .segment-hidden .seg-eye { color: var(--ink-faint); }
+.legend .segment-hidden button { opacity: 0.5; }
 .legend .segment-hidden .seg-name { text-decoration: line-through; }
 
 .status-badge {

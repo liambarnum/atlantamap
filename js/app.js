@@ -15,22 +15,22 @@
   const GOOGLE_TRAVEL = { walk: 'walking', run: 'walking', bike: 'bicycling' };
 
   /**
-   * Every segment is drawn identically — status is shown as a labelled badge
-   * on the segment, not encoded in how the line looks. The colour here is only
-   * for the badge and the status filter chips.
+   * One colour per status, used for the line on the map, the legend swatch,
+   * the badge and the filter chip — so the colour you see on the map is the
+   * same one the legend explains. Weight is uniform; nothing is dashed.
    */
-  const CORRIDOR_STYLE = { color: '#1b7f4d', weight: 5 };
+  const CORRIDOR_WEIGHT = 5;
 
   const STATUS_META = {
-    open: { label: 'Open', badge: '#1b7f4d', detail: 'Finished and open to the public.' },
-    interim: { label: 'Interim', badge: '#2f9e44', detail: 'Walkable, but not yet the finished surface.' },
-    construction: { label: 'Building', badge: '#b06f00', detail: 'Under construction.' },
-    planned: { label: 'Planned', badge: '#6b7570', detail: 'Planned or in design; not yet built.' },
-    closed: { label: 'Closed', badge: '#c2371f', detail: 'Currently closed.' },
+    open: { label: 'Open', color: '#1b7f4d', detail: 'Finished and open to the public.' },
+    interim: { label: 'Interim', color: '#3aa9c4', detail: 'Walkable, but not yet the finished surface.' },
+    construction: { label: 'Building', color: '#e8820c', detail: 'Under construction.' },
+    planned: { label: 'Planned', color: '#8a8f99', detail: 'Planned or in design; not yet built.' },
+    closed: { label: 'Closed', color: '#c2371f', detail: 'Currently closed.' },
   };
   const STATUS_ORDER = ['open', 'interim', 'construction', 'planned', 'closed'];
   const statusMeta = (status) =>
-    STATUS_META[status] || { label: status || 'Unknown', badge: '#6b7570', detail: '' };
+    STATUS_META[status] || { label: status || 'Unknown', color: '#8a8f99', detail: '' };
 
   // The route usually sits directly on top of the corridor, so it is drawn
   // wide and translucent — a highlighter over the trail rather than a line
@@ -401,8 +401,8 @@
 
       wanted.add(id);
       map.setPolyline(id, feature.geometry.coordinates.map(([lng, lat]) => [lat, lng]), {
-        color: CORRIDOR_STYLE.color,
-        weight: CORRIDOR_STYLE.weight,
+        color: statusMeta(props.status).color,
+        weight: CORRIDOR_WEIGHT,
         interactive: true,
         visible,
         tooltip: `${props.name} — ${statusMeta(props.status).label}`,
@@ -512,7 +512,7 @@
       `<div class="popup">
          <h3>${escapeHTML(p.name)}</h3>
          <div class="meta">
-           <span class="status-badge" style="background:${meta.badge}">${escapeHTML(meta.label)}</span>
+           <span class="status-badge" style="background:${meta.color}">${escapeHTML(meta.label)}</span>
            <span>${fmtDist(p.lengthMeters || 0)}</span>
          </div>
          ${meta.detail ? `<p class="status-detail">${escapeHTML(meta.detail)}</p>` : ''}
@@ -738,7 +738,7 @@
       button.setAttribute('aria-pressed', String(on));
       button.title = meta.detail;
       button.innerHTML =
-        `<span class="chip-dot" style="background:${meta.badge}"></span>` +
+        `<span class="chip-dot" style="background:${meta.color}"></span>` +
         `${escapeHTML(meta.label)} <em>${count}</em>`;
       chips.appendChild(button);
     }
@@ -762,11 +762,13 @@
                   ? `${escapeHTML(meta.label)} segments are filtered out`
                   : `${hidden ? 'Show' : 'Hide'} ${escapeHTML(p.name)}`}"
                 ${byStatus ? 'disabled' : ''}>
-          <span class="seg-eye" aria-hidden="true">${hidden ? '○' : '●'}</span>
+          <span class="seg-swatch" aria-hidden="true"
+                style="background:${hidden ? 'transparent' : meta.color};
+                       border-color:${meta.color}"></span>
           <span class="seg-body">
             <span class="seg-name">${escapeHTML(p.name)}</span>
             <span class="seg-meta">
-              <span class="status-badge" style="background:${meta.badge}">${escapeHTML(meta.label)}</span>
+              <span class="status-badge" style="background:${meta.color}">${escapeHTML(meta.label)}</span>
               <span class="seg-len">${fmtDist(p.lengthMeters || 0)}</span>
             </span>
           </span>

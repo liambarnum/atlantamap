@@ -37,17 +37,19 @@ places that aren't on the trail. Every result has a **+** that drops it into the
 order, and found places show on the map as purple search markers until you add or clear
 them.
 
-**The corridor.** All six named segments of the 22-mile loop. Every segment is drawn
-the same way — status is shown as a labelled badge rather than encoded in the line
-style, so the map stays readable and the status stays legible. Each segment can be
-hidden on its own, filtered out by status, or the whole corridor switched off. Clicking
-a segment shows its status, what that status means, and its length.
+**The corridor.** All six named segments of the 22-mile loop, coloured by status —
+green for open, orange for building, grey for planned — with the same colour on the
+line, the legend swatch, the status badge and the filter chip, so the legend is a key
+rather than decoration. Nothing is dashed and every segment is the same weight, so
+colour is the only thing carrying meaning. Each segment can be hidden on its own,
+filtered out by status, or the whole corridor switched off. Clicking a segment shows
+its status, what that status means, and its length.
 
-The statuses are **Open**, **Interim** (walkable but not the finished surface),
-**Building**, **Planned** and **Closed**. `tools/build-data.js` rejects any other value,
-so a typo cannot quietly become a fifth category. As currently mapped: Eastside,
-Westside and Westside Segment 4 are open; Southside and Northeast are building;
-Northwest is planned.
+The statuses are **Open** (green), **Interim** (blue — walkable but not the finished
+surface), **Building** (orange), **Planned** (grey) and **Closed** (red).
+`tools/build-data.js` rejects any other value, so a typo cannot quietly become a sixth
+category. As currently mapped: Eastside, Westside and Westside Segment 4 are open;
+Southside and Northeast are building; Northwest is planned.
 
 **Access points.** 51 trailheads, park entrances, transit connections and street
 crossings. Toggle the whole layer, filter by type with the chips, or filter by name,
@@ -119,6 +121,15 @@ approximations.** They are accurate to roughly a block, which is fine for planni
 walk and not fine for anything that needs real precision. The traced loop measures
 20.4 miles against the real 22, because a hand trace cuts corners the rail bed does
 not.
+
+The Eastside Trail has had a correction pass, re-anchored on landmarks: the trail runs
+along the *east* side of Ponce City Market and forms the east edge of Historic Fourth
+Ward Park, and Krog Street Market sits at Irwin Street rather than a few hundred metres
+north of it. The earlier trace had that stretch roughly 150 m too far west. The other
+five segments have not had the same pass and are the weaker part of the dataset.
+
+`tests/geo.test.js` enforces that every access point sits within 60 m of the corridor,
+so the line and the markers cannot drift apart unnoticed.
 
 Two ways to replace it with the real alignment:
 

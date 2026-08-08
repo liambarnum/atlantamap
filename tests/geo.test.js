@@ -193,12 +193,41 @@ near(Geo.haversine([33, -84], [34, -84]), 111000, 500, 'haversine: one degree of
     `endpoints are ${Geo.haversine(spine[0], spine[spine.length - 1])} m apart`
   );
 
-  const pcm = Geo.nearestOnPath([33.7726, -84.3657], spine, cum);
-  const krog = Geo.nearestOnPath([33.7554, -84.3646], spine, cum);
-  const lindbergh = Geo.nearestOnPath([33.8215, -84.3672], spine, cum);
+  // Every access point is meant to sit on the corridor it belongs to. This is
+  // the invariant that catches the line and the markers drifting apart, which
+  // is what a hand-traced alignment gets wrong first.
+  const access = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '..', 'data', 'access-points.geojson'), 'utf8')
+  );
+  let worst = { offset: -1, name: null };
+  for (const feature of access.features) {
+    const [lng, lat] = feature.geometry.coordinates;
+    const snap = Geo.nearestOnPath([lat, lng], spine, cum);
+    if (snap.offset > worst.offset) worst = { offset: snap.offset, name: feature.properties.name };
+  }
+  check(
+    'corridor: every access point sits on the corridor',
+    worst.offset < 60,
+    `furthest is "${worst.name}" at ${worst.offset.toFixed(0)} m`
+  );
 
-  check('corridor: PCM snaps to the trail', pcm.offset < 50, `offset ${pcm.offset} m`);
-  check('corridor: Krog snaps to the trail', krog.offset < 50, `offset ${krog.offset} m`);
+  const byName = (name) => {
+    const f = access.features.find((x) => x.properties.name === name);
+    const [lng, lat] = f.geometry.coordinates;
+    return Geo.nearestOnPath([lat, lng], spine, cum);
+  };
+  const pcm = byName('Ponce City Market');
+  const krog = byName('Krog Street Market');
+  const lindbergh = byName('Lindbergh Center MARTA');
+
+  // Ponce City Market and Krog Street Market are a bit over a mile apart on
+  // the trail; if the Eastside trace drifts, this is where it shows.
+  near(
+    Geo.slicePath(spine, cum, pcm.along, krog.along, true).distance / 1609.344,
+    1.28,
+    0.25,
+    'corridor: PCM to Krog matches the published Eastside distance'
+  );
 
   const walk = Geo.slicePath(spine, cum, pcm.along, krog.along, true);
   near(walk.distance / 1609.344, 1.2, 0.4, 'corridor: PCM to Krog is about a mile of trail');
