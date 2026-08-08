@@ -1,0 +1,1091 @@
+{
+  "type": "FeatureCollection",
+  "name": "Atlanta BeltLine access points",
+  "metadata": {
+    "description": "Trailheads, park entrances, transit connections and street crossings.",
+    "accuracy": "Approximate positions, snapped by eye to the corridor.",
+    "generatedBy": "tools/build-data.js"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "ap-001",
+      "properties": {
+        "id": "ap-001",
+        "name": "Piedmont Park — Park Tavern",
+        "segment": "eastside",
+        "type": "park",
+        "amenities": [
+          "restrooms",
+          "water",
+          "bus"
+        ],
+        "description": "10th St NE at Monroe Dr. Busiest entrance on the trail."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3712,
+          33.7818
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-002",
+      "properties": {
+        "id": "ap-002",
+        "name": "Piedmont Park — North Woods",
+        "segment": "eastside",
+        "type": "park",
+        "amenities": [
+          "restrooms",
+          "water"
+        ],
+        "description": "North end of the park, near the Northeast Trail junction."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3706,
+          33.786
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-003",
+      "properties": {
+        "id": "ap-003",
+        "name": "Monroe Drive at Virginia Ave",
+        "segment": "eastside",
+        "type": "street",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Street-level crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.369,
+          33.7786
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-004",
+      "properties": {
+        "id": "ap-004",
+        "name": "Amsterdam Walk",
+        "segment": "eastside",
+        "type": "street",
+        "amenities": [
+          "food"
+        ],
+        "description": "Access from Amsterdam Ave NE."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.367,
+          33.7755
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-005",
+      "properties": {
+        "id": "ap-005",
+        "name": "Ponce City Market",
+        "segment": "eastside",
+        "type": "trailhead",
+        "amenities": [
+          "restrooms",
+          "food",
+          "water",
+          "parking",
+          "bike-share"
+        ],
+        "description": "Ramp and stairs to the Central Food Hall. Paid parking deck."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3657,
+          33.7726
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-006",
+      "properties": {
+        "id": "ap-006",
+        "name": "Ponce de Leon Ave",
+        "segment": "eastside",
+        "type": "street",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Trail passes under Ponce; access via PCM ramp."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3656,
+          33.7712
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-007",
+      "properties": {
+        "id": "ap-007",
+        "name": "North Avenue",
+        "segment": "eastside",
+        "type": "street",
+        "amenities": [],
+        "description": "Stair and ramp access."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3655,
+          33.77
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-008",
+      "properties": {
+        "id": "ap-008",
+        "name": "Historic Fourth Ward Park",
+        "segment": "eastside",
+        "type": "park",
+        "amenities": [
+          "restrooms",
+          "water",
+          "playground",
+          "parking"
+        ],
+        "description": "Skate park, splash pad and the retention pond."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.366,
+          33.7666
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-009",
+      "properties": {
+        "id": "ap-009",
+        "name": "Freedom Parkway / PATH",
+        "segment": "eastside",
+        "type": "trailhead",
+        "amenities": [
+          "bike-share"
+        ],
+        "description": "Connects to the PATH Freedom Park Trail."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3655,
+          33.764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-010",
+      "properties": {
+        "id": "ap-010",
+        "name": "Irwin Street",
+        "segment": "eastside",
+        "type": "street",
+        "amenities": [
+          "food"
+        ],
+        "description": "Inman Park edge."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3648,
+          33.758
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-011",
+      "properties": {
+        "id": "ap-011",
+        "name": "Krog Street Market",
+        "segment": "eastside",
+        "type": "trailhead",
+        "amenities": [
+          "restrooms",
+          "food",
+          "bike-share"
+        ],
+        "description": "Stairs down to Krog St NE and the tunnel."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3646,
+          33.7554
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-012",
+      "properties": {
+        "id": "ap-012",
+        "name": "Wylie Street",
+        "segment": "eastside",
+        "type": "street",
+        "amenities": [],
+        "description": "Reynoldstown."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.364,
+          33.7525
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-013",
+      "properties": {
+        "id": "ap-013",
+        "name": "Kirkwood Avenue",
+        "segment": "eastside",
+        "type": "street",
+        "amenities": [
+          "food"
+        ],
+        "description": "Reynoldstown."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3616,
+          33.7495
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-014",
+      "properties": {
+        "id": "ap-014",
+        "name": "Bill Kennedy Way",
+        "segment": "eastside",
+        "type": "street",
+        "amenities": [
+          "parking"
+        ],
+        "description": "Street crossing with on-street parking."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3595,
+          33.747
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-015",
+      "properties": {
+        "id": "ap-015",
+        "name": "Memorial Drive",
+        "segment": "eastside",
+        "type": "trailhead",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Eastside/Southside junction."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3565,
+          33.7444
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-016",
+      "properties": {
+        "id": "ap-016",
+        "name": "Glenwood Avenue",
+        "segment": "southside",
+        "type": "street",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Street crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3562,
+          33.7405
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-017",
+      "properties": {
+        "id": "ap-017",
+        "name": "Glenwood Park",
+        "segment": "southside",
+        "type": "park",
+        "amenities": [
+          "food",
+          "water"
+        ],
+        "description": "Neighborhood green and shops."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3572,
+          33.737
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-018",
+      "properties": {
+        "id": "ap-018",
+        "name": "Ormewood Avenue",
+        "segment": "southside",
+        "type": "street",
+        "amenities": [],
+        "description": "Ormewood Park."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.36,
+          33.733
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-019",
+      "properties": {
+        "id": "ap-019",
+        "name": "Boulevard Crossing Park",
+        "segment": "southside",
+        "type": "park",
+        "amenities": [
+          "restrooms",
+          "parking",
+          "playground"
+        ],
+        "description": "Parking off Boulevard SE."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3706,
+          33.7262
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-020",
+      "properties": {
+        "id": "ap-020",
+        "name": "Boulevard SE",
+        "segment": "southside",
+        "type": "street",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Street crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3722,
+          33.7252
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-021",
+      "properties": {
+        "id": "ap-021",
+        "name": "Hill Street",
+        "segment": "southside",
+        "type": "street",
+        "amenities": [],
+        "description": "Chosewood edge."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3792,
+          33.7228
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-022",
+      "properties": {
+        "id": "ap-022",
+        "name": "Chosewood Park",
+        "segment": "southside",
+        "type": "park",
+        "amenities": [
+          "restrooms",
+          "playground",
+          "parking"
+        ],
+        "description": "Pool and ball fields."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3845,
+          33.7212
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-023",
+      "properties": {
+        "id": "ap-023",
+        "name": "Englewood Avenue",
+        "segment": "southside",
+        "type": "street",
+        "amenities": [],
+        "description": "Street crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3898,
+          33.7192
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-024",
+      "properties": {
+        "id": "ap-024",
+        "name": "Pryor Road",
+        "segment": "southside",
+        "type": "street",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Street crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3925,
+          33.718
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-025",
+      "properties": {
+        "id": "ap-025",
+        "name": "McDaniel Street",
+        "segment": "southside",
+        "type": "street",
+        "amenities": [],
+        "description": "Pittsburgh."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.4022,
+          33.713
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-026",
+      "properties": {
+        "id": "ap-026",
+        "name": "University Ave / Pittsburgh Yards",
+        "segment": "southside",
+        "type": "trailhead",
+        "amenities": [
+          "parking",
+          "food"
+        ],
+        "description": "Southside/Westside junction."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.406,
+          33.7115
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-027",
+      "properties": {
+        "id": "ap-027",
+        "name": "Allene Avenue",
+        "segment": "westside",
+        "type": "street",
+        "amenities": [],
+        "description": "Adair Park."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.4098,
+          33.718
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-028",
+      "properties": {
+        "id": "ap-028",
+        "name": "Murphy Avenue / Adair Park",
+        "segment": "westside",
+        "type": "park",
+        "amenities": [
+          "playground"
+        ],
+        "description": "Adair Park entrance."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.4105,
+          33.7215
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-029",
+      "properties": {
+        "id": "ap-029",
+        "name": "White Street",
+        "segment": "westside",
+        "type": "street",
+        "amenities": [],
+        "description": "Street crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.411,
+          33.725
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-030",
+      "properties": {
+        "id": "ap-030",
+        "name": "Lee Street / West End MARTA",
+        "segment": "westside",
+        "type": "transit",
+        "amenities": [
+          "rail",
+          "bus",
+          "parking",
+          "bike-share"
+        ],
+        "description": "West End station — Red and Gold lines."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.4128,
+          33.729
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-031",
+      "properties": {
+        "id": "ap-031",
+        "name": "Ralph David Abernathy Blvd",
+        "segment": "westside",
+        "type": "street",
+        "amenities": [
+          "food",
+          "bus"
+        ],
+        "description": "West End business district."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.4165,
+          33.736
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-032",
+      "properties": {
+        "id": "ap-032",
+        "name": "Lawton Street",
+        "segment": "westside",
+        "type": "street",
+        "amenities": [],
+        "description": "Westview edge."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.4195,
+          33.74
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-033",
+      "properties": {
+        "id": "ap-033",
+        "name": "Langhorn Street / Ashview Heights",
+        "segment": "westside",
+        "type": "street",
+        "amenities": [],
+        "description": "Street crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.4225,
+          33.744
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-034",
+      "properties": {
+        "id": "ap-034",
+        "name": "Lena Street",
+        "segment": "westside",
+        "type": "trailhead",
+        "amenities": [],
+        "description": "Ashview Heights trailhead."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.425,
+          33.748
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-035",
+      "properties": {
+        "id": "ap-035",
+        "name": "Washington Park",
+        "segment": "westside",
+        "type": "park",
+        "amenities": [
+          "restrooms",
+          "pool",
+          "parking"
+        ],
+        "description": "Natatorium and tennis center."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.4272,
+          33.7555
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-036",
+      "properties": {
+        "id": "ap-036",
+        "name": "Rockdale Park / Hollowell Pkwy",
+        "segment": "westside-segment-4",
+        "type": "street",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Donald Lee Hollowell Pkwy crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.431,
+          33.77
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-037",
+      "properties": {
+        "id": "ap-037",
+        "name": "Grove Park / Johnson Road",
+        "segment": "westside-segment-4",
+        "type": "street",
+        "amenities": [],
+        "description": "Grove Park."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.432,
+          33.78
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-038",
+      "properties": {
+        "id": "ap-038",
+        "name": "Westside Park at Bellwood Quarry",
+        "segment": "westside-segment-4",
+        "type": "park",
+        "amenities": [
+          "restrooms",
+          "water",
+          "parking",
+          "playground"
+        ],
+        "description": "Atlanta's largest park; the quarry reservoir overlook."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.43,
+          33.7875
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-039",
+      "properties": {
+        "id": "ap-039",
+        "name": "Marietta Blvd / Chattahoochee Ave",
+        "segment": "northwest",
+        "type": "street",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Planned alignment — not yet a built trailhead."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.4355,
+          33.7935
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-040",
+      "properties": {
+        "id": "ap-040",
+        "name": "Howell Mill Road",
+        "segment": "northwest",
+        "type": "street",
+        "amenities": [
+          "food"
+        ],
+        "description": "Planned alignment."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.422,
+          33.8005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-041",
+      "properties": {
+        "id": "ap-041",
+        "name": "Bobby Jones Golf Course",
+        "segment": "northwest",
+        "type": "park",
+        "amenities": [
+          "parking"
+        ],
+        "description": "Planned alignment."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.41,
+          33.8065
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-042",
+      "properties": {
+        "id": "ap-042",
+        "name": "Tanyard Creek Park",
+        "segment": "northwest",
+        "type": "park",
+        "amenities": [
+          "water",
+          "playground"
+        ],
+        "description": "Connects to the Tanyard Creek PATH trail."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.405,
+          33.8085
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-043",
+      "properties": {
+        "id": "ap-043",
+        "name": "Northside Drive",
+        "segment": "northwest",
+        "type": "street",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Planned crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3995,
+          33.8095
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-044",
+      "properties": {
+        "id": "ap-044",
+        "name": "Ardmore Park",
+        "segment": "northwest",
+        "type": "park",
+        "amenities": [
+          "playground"
+        ],
+        "description": "Planned alignment."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.395,
+          33.808
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-045",
+      "properties": {
+        "id": "ap-045",
+        "name": "Peachtree Road / Brookwood",
+        "segment": "northwest",
+        "type": "street",
+        "amenities": [
+          "bus",
+          "food"
+        ],
+        "description": "Planned crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.39,
+          33.8095
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-046",
+      "properties": {
+        "id": "ap-046",
+        "name": "Armour Yards",
+        "segment": "northeast",
+        "type": "trailhead",
+        "amenities": [
+          "food",
+          "parking"
+        ],
+        "description": "Armour Drive industrial district."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.374,
+          33.815
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-047",
+      "properties": {
+        "id": "ap-047",
+        "name": "Lindbergh Center MARTA",
+        "segment": "northeast",
+        "type": "transit",
+        "amenities": [
+          "rail",
+          "bus",
+          "parking"
+        ],
+        "description": "Lindbergh Center station — northern top of the loop."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3672,
+          33.8215
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-048",
+      "properties": {
+        "id": "ap-048",
+        "name": "Piedmont Road",
+        "segment": "northeast",
+        "type": "street",
+        "amenities": [
+          "bus",
+          "food"
+        ],
+        "description": "Piedmont Heights."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3625,
+          33.817
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-049",
+      "properties": {
+        "id": "ap-049",
+        "name": "Montgomery Ferry Drive",
+        "segment": "northeast",
+        "type": "street",
+        "amenities": [],
+        "description": "Piedmont Heights."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3655,
+          33.805
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-050",
+      "properties": {
+        "id": "ap-050",
+        "name": "Ansley Mall",
+        "segment": "northeast",
+        "type": "trailhead",
+        "amenities": [
+          "food",
+          "parking",
+          "restrooms"
+        ],
+        "description": "Shopping center parking and food."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3695,
+          33.794
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ap-051",
+      "properties": {
+        "id": "ap-051",
+        "name": "Monroe Drive / Ansley",
+        "segment": "northeast",
+        "type": "street",
+        "amenities": [
+          "bus"
+        ],
+        "description": "Street crossing."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.37,
+          33.7905
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atlanta BeltLine Trail Planner</title>
+<meta name="description" content="Trace the full Atlanta BeltLine loop, show or hide access points, drop pins, order them into a route, and download it as GeoJSON, GPX or KML.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🚲</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <header class="topbar">
+    <button class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Toggle panel" aria-expanded="true">
+      <span aria-hidden="true">☰</span>
+    </button>
+    <h1>Atlanta BeltLine <span>Trail Planner</span></h1>
+    <div class="topbar-actions">
+      <button class="btn btn-primary" id="dropModeBtn" aria-pressed="false">
+        <span aria-hidden="true">📍</span> Drop pin
+      </button>
+      <button class="btn" id="fitLoopBtn" title="Zoom to the whole loop">Fit loop</button>
+    </div>
+  </header>
+
+  <aside class="sidebar" id="sidebar">
+
+    <!-- ------------------------------------------------ route -->
+    <section class="panel" aria-labelledby="routeHeading">
+      <h2 id="routeHeading">Your route</h2>
+
+      <div class="route-summary" id="routeSummary">
+        <p class="empty-hint" id="routeEmptyHint">
+          Turn on <strong>Drop pin</strong> and click the map, or add an access point from its
+          popup. Pins link up in the order listed below.
+        </p>
+        <dl class="stats" id="routeStats" hidden>
+          <div><dt>Distance</dt><dd id="statDistance">—</dd></div>
+          <div><dt id="statTimeLabel">Walking</dt><dd id="statTime">—</dd></div>
+          <div><dt>Stops</dt><dd id="statStops">—</dd></div>
+        </dl>
+      </div>
+
+      <ol class="pin-list" id="pinList" aria-label="Route stops in order"></ol>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Connect pins</span>
+          <select id="routeMode">
+            <option value="beltline">Follow the BeltLine</option>
+            <option value="straight">Straight lines</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Travelling by</span>
+          <select id="travelMode">
+            <option value="walk">Walking</option>
+            <option value="bike">Biking</option>
+            <option value="run">Running</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="check-row">
+        <label class="check"><input type="checkbox" id="closeLoop"> <span>Return to the first pin</span></label>
+      </div>
+
+      <div class="button-row">
+        <button class="btn" id="reverseBtn">Reverse order</button>
+        <button class="btn" id="sortByLoopBtn" title="Reorder stops to follow the loop">Order along loop</button>
+        <button class="btn btn-danger" id="clearPinsBtn">Clear pins</button>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------ layers -->
+    <section class="panel" aria-labelledby="layersHeading">
+      <h2 id="layersHeading">Layers</h2>
+
+      <label class="check check-lead">
+        <input type="checkbox" id="showCorridor" checked>
+        <span>BeltLine corridor</span>
+      </label>
+      <ul class="legend" id="segmentLegend"></ul>
+
+      <label class="check check-lead">
+        <input type="checkbox" id="showAccess" checked>
+        <span>Access points <em id="accessCount"></em></span>
+      </label>
+
+      <div class="access-controls" id="accessControls">
+        <input type="search" id="accessSearch" placeholder="Search access points…" aria-label="Search access points">
+        <div class="chips" id="accessTypeChips" role="group" aria-label="Filter access points by type"></div>
+        <ul class="access-list" id="accessList" aria-label="Access points"></ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------ download -->
+    <section class="panel" aria-labelledby="downloadHeading">
+      <h2 id="downloadHeading">Download &amp; share</h2>
+
+      <div class="check-row">
+        <label class="check"><input type="checkbox" id="includeCorridor" checked> <span>Include the BeltLine corridor</span></label>
+        <label class="check"><input type="checkbox" id="includeAccess"> <span>Include all access points</span></label>
+      </div>
+
+      <div class="download-grid" id="downloadGrid"></div>
+
+      <div class="button-row">
+        <button class="btn" id="shareBtn">Copy share link</button>
+        <button class="btn" id="googleDirBtn" title="Open this route in Google Maps directions">Open in Google Maps</button>
+      </div>
+
+      <div class="button-row">
+        <button class="btn" id="importBtn">Import a file…</button>
+        <input type="file" id="importInput" accept=".geojson,.json,.gpx,.kml,application/geo+json,application/json" hidden>
+      </div>
+      <p class="hint">
+        Importing GeoJSON, GPX or KML adds its points as pins. If the file contains lines, you
+        will be offered the option to replace the corridor with them — that is how you load the
+        official BeltLine alignment.
+      </p>
+    </section>
+
+    <!-- ------------------------------------------------ basemap -->
+    <section class="panel" aria-labelledby="basemapHeading">
+      <h2 id="basemapHeading">Basemap</h2>
+
+      <div class="segmented" role="radiogroup" aria-label="Basemap">
+        <label><input type="radio" name="basemap" value="osm" checked> <span>OpenStreetMap</span></label>
+        <label><input type="radio" name="basemap" value="google"> <span>Google Maps</span></label>
+      </div>
+
+      <div class="google-key" id="googleKeyBlock" hidden>
+        <label class="field">
+          <span>Google Maps API key</span>
+          <input type="password" id="googleKey" placeholder="AIza…" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="button-row">
+          <button class="btn btn-primary" id="applyKeyBtn">Use this key</button>
+          <button class="btn" id="forgetKeyBtn">Forget key</button>
+        </div>
+        <p class="hint">
+          Stored in this browser only (localStorage), never sent anywhere but Google. Needs the
+          <strong>Maps JavaScript API</strong> enabled on a project with billing on.
+        </p>
+      </div>
+
+      <label class="field">
+        <span>Units</span>
+        <select id="units">
+          <option value="mi">Miles</option>
+          <option value="km">Kilometres</option>
+        </select>
+      </label>
+    </section>
+
+    <!-- ------------------------------------------------ about -->
+    <section class="panel panel-quiet" aria-labelledby="aboutHeading">
+      <h2 id="aboutHeading">About this data</h2>
+      <p class="hint">
+        The corridor and access points bundled here are <strong>hand-traced approximations</strong>,
+        accurate to roughly a block. They are fine for planning a walk and wrong for anything that
+        needs real precision. Import the official alignment to replace them.
+      </p>
+      <p class="hint">
+        Everything you add stays in this browser. Nothing is uploaded.
+      </p>
+    </section>
+
+  </aside>
+
+  <main class="map-area">
+    <div id="map" class="map" role="application" aria-label="Map of the Atlanta BeltLine"></div>
+
+    <div class="map-notice" id="dropHint" hidden>
+      Click the map to drop a pin · <kbd>Esc</kbd> to stop
+    </div>
+
+    <div class="map-error" id="mapError" hidden>
+      <h2>The map could not load</h2>
+      <p id="mapErrorText"></p>
+      <button class="btn btn-primary" id="mapErrorFallback">Switch to OpenStreetMap</button>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+</div>
+
+<script src="data/beltline.js"></script>
+<script src="data/access-points.js"></script>
+<script src="js/geo.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/map.js"></script>
+<script src="js/exporters.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
