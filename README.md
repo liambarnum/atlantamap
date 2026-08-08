@@ -26,16 +26,33 @@ Opening the file directly works. If you would rather serve it:
 python3 -m http.server 8000   # then visit http://localhost:8000
 ```
 
-Deploying to GitHub Pages needs nothing beyond pointing Pages at the repository root.
+### Live on GitHub Pages
+
+`.github/workflows/pages.yml` publishes the site on every push to `main` or the feature
+branch. It needs enabling once: **Settings → Pages → Source → GitHub Actions**. After
+that the site is at `https://liambarnum.github.io/atlantamap/` and updates itself on
+each push.
+
+The workflow runs the tests first and refuses to deploy if they fail. It also
+regenerates `data/` and fails if the result differs from what is committed, so the
+bundled data can never drift from `tools/build-data.js`.
 
 ## What it does
 
-**Find a place.** Search for anywhere — an address, a landmark, a coffee shop — and add
-it to your route. Typing matches the bundled access points and BeltLine segments
-instantly with no network call; pressing enter also geocodes the text so you can find
-places that aren't on the trail. Every result has a **+** that drops it into the route
-order, and found places show on the map as purple search markers until you add or clear
-them.
+**Find a place.** Search for an address, a landmark, a business or a ZIP code and add it
+to your route. Typing matches the bundled access points and BeltLine segments instantly
+with no network call; pressing enter also geocodes the text. Every result has a **+**
+that drops it into the route order, and found places show on the map as purple search
+markers until you add or clear them.
+
+Results are restricted to Atlanta, by ZIP code rather than by bounding box. A box drawn
+around Atlanta also contains Decatur, Marietta, Smyrna, Tucker and College Park, so the
+postcode is what actually decides: a known Atlanta ZIP is kept, a known non-Atlanta ZIP
+is dropped, and a result with no postcode at all — parks, intersections, neighbourhoods
+often have none — falls back to the box. Results in the ZIPs the BeltLine itself runs
+through are listed first. The list is the USPS definition, so Sandy Springs and Vinings
+addresses resolve, because those carry Atlanta mailing addresses and someone typing one
+expects it to work.
 
 **The corridor.** All six named segments of the 22-mile loop, coloured by status —
 green for open, orange for building, grey for planned — with the same colour on the
@@ -176,6 +193,8 @@ data/*.geojson          the corridor and access points
 data/*.js               the same data as plain scripts, so file:// works
 tools/build-data.js     source of truth for both; regenerates data/
 tests/geo.test.js       tests for the routing math
+tests/geocode.test.js   tests for the Atlanta search restriction
+data/sources/           raw exports kept for reference; see its README
 vendor/leaflet/         Leaflet 1.9.4 (BSD-2-Clause)
 ```
 
@@ -186,7 +205,7 @@ Coordinates are `[lat, lng]` everywhere inside the app, and flipped to GeoJSON's
 ## Tests
 
 ```sh
-node tests/geo.test.js
+npm test          # or: node tests/geo.test.js && node tests/geocode.test.js
 ```
 
 47 checks over the geometry: haversine against known distances, projection onto a
@@ -195,9 +214,14 @@ crossing the seam in the coordinate list does not produce a line across the city
 that the drawn line is always as long as the distance reported for it. The last group
 runs against the real corridor data rather than a synthetic path.
 
-The UI was developed against a Playwright script of 141 checks covering the layers,
-segment statuses and status filtering, place search (with the geocoder stubbed, plus
-its empty and unreachable paths), pin dropping, every reordering path, routing modes,
+`tests/geocode.test.js` adds 30 checks over the Atlanta restriction: ZIP extraction,
+which suburbs are kept and which are dropped, the no-postcode fallback, and the
+BeltLine-first ranking.
+
+The UI was developed against a Playwright script of 150 checks covering the layers,
+segment statuses and status filtering, place search (with the geocoder stubbed, including
+its empty and unreachable paths and that out-of-town results are filtered out), pin
+dropping, every reordering path, routing modes,
 all four export formats, import round trips, share links and persistence.
 
 ## Credits

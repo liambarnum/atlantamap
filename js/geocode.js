@@ -9,16 +9,49 @@
  *              failure here is expected and falls through rather than erroring.
  *   Nominatim — OpenStreetMap's geocoder. No key, works on either basemap.
  *
- * Results are biased towards Atlanta but not restricted to it, so searching for
- * somewhere outside the city still finds it.
+ * Results are restricted to Atlanta. A bounding box alone is too blunt — it
+ * lets in anything within the rectangle, including neighbouring cities — so
+ * the postcode is the real test, with the box as a fallback for results that
+ * come back without one.
  */
 (function (global) {
   'use strict';
 
-  // Roughly the metro area: west, south, east, north.
-  const ATLANTA_VIEWBOX = [-84.85, 33.45, -84.05, 34.05];
+  // The city and its immediate surrounds: west, south, east, north.
+  const ATLANTA_VIEWBOX = [-84.65, 33.60, -84.20, 33.94];
   const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
-  const RESULT_LIMIT = 8;
+  const RESULT_LIMIT = 12;
+
+  /**
+   * ZIP codes whose USPS city name is Atlanta.
+   *
+   * This is deliberately the mailing definition rather than the city limits:
+   * a resident typing an address in Sandy Springs or Vinings expects it to
+   * resolve, and those carry Atlanta addresses. What it excludes is the
+   * neighbouring cities with names of their own — Decatur, Marietta, Smyrna,
+   * College Park, Tucker — all of which sit inside any bounding box drawn
+   * around Atlanta and would otherwise come back as results.
+   *
+   * PO-box-only codes are left out; nothing on a map carries one.
+   */
+  const ATLANTA_ZIPS = new Set([
+    // City proper
+    '30303', '30305', '30306', '30307', '30308', '30309', '30310', '30311',
+    '30312', '30313', '30314', '30315', '30316', '30317', '30318', '30319',
+    '30322', '30324', '30326', '30327', '30331', '30332', '30334', '30336',
+    '30342', '30354', '30363',
+    // Airport and south Fulton, both Atlanta mailing addresses
+    '30320', '30349',
+    // Outside the city limits, still an Atlanta mailing address
+    '30328', '30329', '30338', '30339', '30340', '30341', '30345', '30346',
+    '30350', '30360',
+  ]);
+
+  /** ZIPs the BeltLine itself passes through, used only to rank results. */
+  const BELTLINE_ZIPS = new Set([
+    '30306', '30307', '30308', '30309', '30310', '30312', '30313', '30314',
+    '30315', '30316', '30318', '30324', '30326', '30363',
+  ]);
 
   class GeocodeError extends Error {
     constructor(message, cause) {
@@ -37,13 +70,54 @@
     return { name: parts[0] || displayName, address: parts.slice(1).join(', ') };
   }
 
+  const inViewbox = (lat, lng) =>
+    lng >= ATLANTA_VIEWBOX[0] &&
+    lng <= ATLANTA_VIEWBOX[2] &&
+    lat >= ATLANTA_VIEWBOX[1] &&
+    lat <= ATLANTA_VIEWBOX[3];
+
+  /** First five-digit run in a string, which is how a ZIP appears in an address. */
+  function extractZip(text) {
+    const match = /\b(\d{5})(?:-\d{4})?\b/.exec(String(text || ''));
+    return match ? match[1] : null;
+  }
+
+  /**
+   * Is this result in Atlanta?
+   *
+   * A known ZIP decides it either way — that is the accurate test, and it
+   * correctly rejects Decatur, Marietta and East Point, which a bounding box
+   * would happily include. Results with no ZIP at all (parks, intersections,
+   * neighbourhoods) fall back to the box.
+   */
+  function withinAtlanta(hit) {
+    const zip = hit.postcode || extractZip(hit.address) || extractZip(hit.name);
+    if (zip) return ATLANTA_ZIPS.has(zip);
+    return inViewbox(hit.lat, hit.lng);
+  }
+
+  /** Results on the BeltLine's own ZIPs come first; everything keeps its order. */
+  function rankForAtlanta(hits) {
+    return hits
+      .map((hit, index) => {
+        const zip = hit.postcode || extractZip(hit.address);
+        return { hit, index, onBeltLine: zip ? BELTLINE_ZIPS.has(zip) : false };
+      })
+      .sort((a, b) => (b.onBeltLine ? 1 : 0) - (a.onBeltLine ? 1 : 0) || a.index - b.index)
+      .map((entry) => entry.hit);
+  }
+
   async function viaNominatim(query, signal) {
     const url = new URL(NOMINATIM);
     url.searchParams.set('q', query);
     url.searchParams.set('format', 'jsonv2');
     url.searchParams.set('limit', String(RESULT_LIMIT));
     url.searchParams.set('addressdetails', '1');
+    url.searchParams.set('countrycodes', 'us');
     url.searchParams.set('viewbox', ATLANTA_VIEWBOX.join(','));
+    // bounded=1 makes the viewbox a hard limit rather than a preference; the
+    // ZIP check then trims the neighbouring cities it still lets through.
+    url.searchParams.set('bounded', '1');
 
     let res;
     try {
@@ -55,16 +129,21 @@
     if (!res.ok) throw new GeocodeError(`The place search returned HTTP ${res.status}.`);
 
     const body = await res.json();
-    return body.map((hit) => {
-      const { name, address } = splitLabel(hit.display_name);
-      return {
-        name: hit.name || name,
-        address: hit.name ? splitLabel(hit.display_name).address : address,
-        lat: parseFloat(hit.lat),
-        lng: parseFloat(hit.lon),
-        source: 'OpenStreetMap',
-      };
-    }).filter((hit) => Number.isFinite(hit.lat) && Number.isFinite(hit.lng));
+    const hits = body
+      .map((hit) => {
+        const { name, address } = splitLabel(hit.display_name);
+        return {
+          name: hit.name || name,
+          address,
+          postcode: (hit.address && hit.address.postcode) || extractZip(hit.display_name),
+          lat: parseFloat(hit.lat),
+          lng: parseFloat(hit.lon),
+          source: 'OpenStreetMap',
+        };
+      })
+      .filter((hit) => Number.isFinite(hit.lat) && Number.isFinite(hit.lng));
+
+    return rankForAtlanta(hits.filter(withinAtlanta)).slice(0, 8);
   }
 
   function viaGoogle(query) {
@@ -77,18 +156,29 @@
       { lat: ATLANTA_VIEWBOX[3], lng: ATLANTA_VIEWBOX[2] }
     );
 
-    return geocoder.geocode({ address: query, bounds }).then((response) =>
-      (response.results || []).slice(0, RESULT_LIMIT).map((hit) => {
-        const { name, address } = splitLabel(hit.formatted_address);
-        return {
-          name,
-          address,
-          lat: hit.geometry.location.lat(),
-          lng: hit.geometry.location.lng(),
-          source: 'Google',
-        };
+    return geocoder
+      .geocode({
+        address: query,
+        bounds,
+        componentRestrictions: { country: 'US', administrativeArea: 'GA', locality: 'Atlanta' },
       })
-    );
+      .then((response) => {
+        const hits = (response.results || []).map((hit) => {
+          const { name, address } = splitLabel(hit.formatted_address);
+          const postal = (hit.address_components || []).find((c) =>
+            c.types.includes('postal_code')
+          );
+          return {
+            name,
+            address,
+            postcode: postal ? postal.short_name : null,
+            lat: hit.geometry.location.lat(),
+            lng: hit.geometry.location.lng(),
+            source: 'Google',
+          };
+        });
+        return rankForAtlanta(hits.filter(withinAtlanta)).slice(0, 8);
+      });
   }
 
   /**
@@ -116,5 +206,15 @@
     return viaNominatim(trimmed, opts.signal);
   }
 
-  global.Geocode = { search, GeocodeError, ATLANTA_VIEWBOX };
+  global.Geocode = {
+    search,
+    GeocodeError,
+    ATLANTA_VIEWBOX,
+    // Exposed for the tests.
+    withinAtlanta,
+    rankForAtlanta,
+    extractZip,
+    ATLANTA_ZIPS,
+    BELTLINE_ZIPS,
+  };
 })(window);

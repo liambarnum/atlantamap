@@ -1,0 +1,55 @@
+name: Deploy to GitHub Pages
+
+# The site is plain static files, so there is nothing to build — the repository
+# root is published as-is. Deploying from the feature branch as well as main
+# means the live page tracks work in progress instead of waiting on a merge.
+on:
+  push:
+    branches:
+      - main
+      - claude/atlanta-beltline-map-pot2fl
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; queue them instead of cancelling, so the last
+# push is always the one that ends up live.
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check the bundled data is in step with its source
+        run: |
+          node tools/build-data.js
+          git diff --exit-code -- data/ \
+            || (echo "::error::data/ is stale — run 'node tools/build-data.js' and commit the result" && exit 1)
+      - name: Geometry tests
+        run: node tests/geo.test.js
+      - name: Place search tests
+        run: node tests/geocode.test.js
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4

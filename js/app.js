@@ -862,7 +862,7 @@
       state.ui.placeResults = [...local, ...places];
       state.ui.placeStatus =
         state.ui.placeResults.length === 0
-          ? { kind: 'empty', message: `Nothing found for “${query}”.` }
+          ? { kind: 'empty', message: `Nothing in Atlanta matched “${query}”.` }
           : null;
     } catch (err) {
       if (err.name === 'AbortError') return;
