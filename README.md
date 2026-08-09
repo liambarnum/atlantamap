@@ -79,23 +79,25 @@ are open, 2 are interim and one short piece of the Northeast Trail is still prop
 never bridged across anything wider than a street crossing, so where the map shows a
 break there is no trail.
 
-**Places.** 75 spots transcribed from a shared Apple Maps guide, grouped by region and
-then by vibe — restaurants, bars, breweries, coffee, dessert, markets, shops, activities, parks.
-Anything further than half a mile from the trail is left out and the count of what was
-dropped is shown. The ☆ on any place sends it to the top of *its own category*, so
-favouriting a bar promotes it among the bars rather than burying the restaurants;
-favourites persist. Each place has a **+** to drop it into the route. No ratings, no
-review summaries — name and category only.
+**Places.** Spots from a shared Apple Maps guide that sit within half a mile of the trail,
+grouped by region and then by vibe — restaurants, bars, breweries, coffee, dessert,
+markets, shops, activities, parks. The ☆ on any place sends it to the top of *its own
+category*, so favouriting a bar promotes it among the bars rather than burying the
+restaurants; favourites persist. Each place has a **+** to drop it into the route. No
+ratings, no review summaries — name and category only.
 
-The list carries names and vibes, not coordinates: **Find these on the map** geocodes
-each one in the browser, one at a time so as not to hammer a public geocoder, and caches
-the result permanently. **Export resolved** then writes the list back out with the
-coordinates filled in, so committing that file spares everyone else the lookup.
+**Half a mile is a rule about the file, not just the view.** The guide held 83 entries,
+most of them metro-wide; the 23 filed under another city were removed outright, since the
+BeltLine lies entirely inside the City of Atlanta and nothing in Marietta or Doraville can
+qualify. The full transcription stays in `data/sources/apple-maps-guide.json`, so nothing
+from the guide is lost.
 
-Two things get left out, and both are counted rather than silently dropped: places more
-than half a mile from the trail, and places the Atlanta-restricted search cannot find —
-most of the guide is metro-wide, out in Marietta, Doraville and Roswell, so a good part
-of it falls away on one or the other.
+The list carries names and vibes, not coordinates: **Find these on the map** geocodes each
+one in the browser, one at a time so as not to hammer a public geocoder, and caches the
+result permanently. **Export the ½-mile list** then writes back only the places that
+measured in range, with their coordinates, so committing its output both spares everyone
+else the lookup and keeps the file to the rule. Both kinds of exclusion — too far, and not
+findable in Atlanta — are counted in the panel rather than silently dropped.
 
 **Access points.** 51 trailheads, park entrances, transit connections and street
 crossings. Toggle the whole layer, filter by type with the chips, or filter by name,
@@ -212,7 +214,7 @@ js/icons.js             marker artwork as SVG data URIs
 js/map.js               the map adapter: one interface, Leaflet and Google behind it
 js/geocode.js           place search: Google when available, Nominatim otherwise
 js/places.js            the places layer: regions, vibes, favourites, half-mile filter
-data/places.json        the places list, hand-maintained
+data/places.json        places within half a mile of the trail, hand-maintained
 js/exporters.js         GeoJSON/GPX/KML/CSV out, GeoJSON/GPX/KML in
 js/app.js               state, routing, rendering, event wiring
 data/*.geojson          the corridor and access points

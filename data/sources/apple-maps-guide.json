@@ -1,8 +1,7 @@
 {
-  "name": "Places within half a mile of the BeltLine",
-  "source": "Filtered from data/sources/apple-maps-guide.json, an Apple Maps guide shared 2026-08-08.",
-  "note": "Only places within half a mile of the corridor belong in this file. The 23 entries Apple filed under another city — Marietta, Smyrna, Doraville, Decatur, Sandy Springs, Brookhaven, Dunwoody, Chamblee, Roswell, Avondale Estates — were removed outright: the BeltLine lies entirely inside the City of Atlanta, so none of them can qualify.",
-  "pending": "These are filed as Atlanta but not yet measured, because nothing in this repo can reach a geocoder. Resolve them in the app and use \"Export the half-mile list\", which writes back only what is actually in range; commit that and this file is exact.",
+  "name": "Atlanta — Apple Maps guide",
+  "source": "Transcribed from screenshots of a shared Apple Maps guide ('Atlanta', 83 places), 2026-08-08.",
+  "note": "The full transcription, kept for provenance. data/places.json holds only the entries within half a mile of the BeltLine; this is what they were filtered from. 75 of the guide's 83 places: the screenshots overlap imperfectly and roughly six entries fell in the seams between them. ChargePoint and Luxury Hand Car Wash were dropped as neither restaurants nor hangouts.",
   "places": [
     {
       "id": "pala-bakery",
@@ -13,6 +12,12 @@
       "id": "monday-night-brewing",
       "name": "Monday Night Brewing",
       "vibe": "brewery"
+    },
+    {
+      "id": "hoboken-cafe",
+      "name": "Hoboken Cafe",
+      "vibe": "restaurant",
+      "hint": "Marietta, GA"
     },
     {
       "id": "morningside-nature-trail",
@@ -65,6 +70,12 @@
       "vibe": "restaurant"
     },
     {
+      "id": "beef-grill",
+      "name": "Beef Grill",
+      "vibe": "restaurant",
+      "hint": "Sandy Springs, GA"
+    },
+    {
       "id": "hankook-taqueria",
       "name": "Hankook Taqueria",
       "vibe": "restaurant"
@@ -75,6 +86,12 @@
       "vibe": "bar"
     },
     {
+      "id": "silver-comet-trail",
+      "name": "Silver Comet Trail",
+      "vibe": "activity",
+      "hint": "Smyrna, GA"
+    },
+    {
       "id": "pollo-primo",
       "name": "Pollo Primo",
       "vibe": "restaurant"
@@ -83,6 +100,12 @@
       "id": "little-s-food-store",
       "name": "Little's Food Store",
       "vibe": "market"
+    },
+    {
+      "id": "owens-hull",
+      "name": "Owens & Hull",
+      "vibe": "restaurant",
+      "hint": "Smyrna, GA"
     },
     {
       "id": "kinship-butcher-sundry",
@@ -100,9 +123,39 @@
       "vibe": "restaurant"
     },
     {
+      "id": "el-rey-del-taco",
+      "name": "El Rey del Taco",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
+    },
+    {
+      "id": "lanzhou-ramen",
+      "name": "LanZhou Ramen",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
+    },
+    {
       "id": "the-bando",
       "name": "The Bando",
       "vibe": "restaurant"
+    },
+    {
+      "id": "brito-supermarket",
+      "name": "Brito Supermarket",
+      "vibe": "market",
+      "hint": "Brookhaven, GA"
+    },
+    {
+      "id": "ruby-s-sourdough-pizza",
+      "name": "Ruby's Sourdough Pizza",
+      "vibe": "restaurant",
+      "hint": "Smyrna, GA"
+    },
+    {
+      "id": "eddie-s-attic",
+      "name": "Eddie's Attic",
+      "vibe": "activity",
+      "hint": "Decatur, GA"
     },
     {
       "id": "victory-sandwich-bar",
@@ -130,6 +183,18 @@
       "vibe": "restaurant"
     },
     {
+      "id": "quoc-huong-banh-mi",
+      "name": "Quoc Huong Banh Mi",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
+    },
+    {
+      "id": "crooked-tree-cafe",
+      "name": "Crooked Tree Cafe",
+      "vibe": "restaurant",
+      "hint": "Marietta, GA"
+    },
+    {
       "id": "dog-beach-2",
       "name": "Dog beach 2",
       "vibe": "activity"
@@ -150,6 +215,12 @@
       "vibe": "restaurant"
     },
     {
+      "id": "yaba-s-bagels",
+      "name": "Yaba's Bagels",
+      "vibe": "restaurant",
+      "hint": "Dunwoody, GA"
+    },
+    {
       "id": "evergreen-butcher-baker",
       "name": "Evergreen Butcher + Baker",
       "vibe": "market"
@@ -158,6 +229,12 @@
       "id": "westside-beltline",
       "name": "Westside Beltline",
       "vibe": "activity"
+    },
+    {
+      "id": "season",
+      "name": "Season",
+      "vibe": "restaurant",
+      "hint": "Marietta, GA"
     },
     {
       "id": "fishmonger",
@@ -200,6 +277,30 @@
       "vibe": "market"
     },
     {
+      "id": "east-palisades-trail",
+      "name": "East Palisades Trail",
+      "vibe": "activity",
+      "hint": "Sandy Springs, GA"
+    },
+    {
+      "id": "fudo",
+      "name": "Fúdo",
+      "vibe": "restaurant",
+      "hint": "Chamblee, GA"
+    },
+    {
+      "id": "no-246",
+      "name": "No. 246",
+      "vibe": "restaurant",
+      "hint": "Decatur, GA"
+    },
+    {
+      "id": "ray-s-on-the-river",
+      "name": "Ray's on the River",
+      "vibe": "restaurant",
+      "hint": "Sandy Springs, GA"
+    },
+    {
       "id": "fum",
       "name": "Fum",
       "vibe": "restaurant"
@@ -220,6 +321,12 @@
       "vibe": "restaurant"
     },
     {
+      "id": "smileys-burger-club",
+      "name": "Smileys Burger Club",
+      "vibe": "restaurant",
+      "hint": "Decatur, GA"
+    },
+    {
       "id": "southern-national",
       "name": "Southern National",
       "vibe": "restaurant"
@@ -230,9 +337,33 @@
       "vibe": "restaurant"
     },
     {
+      "id": "tipsy-thaiger",
+      "name": "Tipsy Thaiger",
+      "vibe": "restaurant",
+      "hint": "Roswell, GA"
+    },
+    {
+      "id": "kamayan-atl",
+      "name": "Kamayan ATL",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
+    },
+    {
       "id": "corgi-cafe",
       "name": "Corgi Cafe",
       "vibe": "coffee"
+    },
+    {
+      "id": "banjo-coffee",
+      "name": "Banjo Coffee",
+      "vibe": "coffee",
+      "hint": "Avondale Estates, GA"
+    },
+    {
+      "id": "el-autentico-sinalouense",
+      "name": "El Autentico Sinalouense",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
     },
     {
       "id": "staplehouse",
@@ -248,6 +379,12 @@
       "id": "frazie-s-meat-market",
       "name": "Frazie's Meat & Market",
       "vibe": "market"
+    },
+    {
+      "id": "kimball-house",
+      "name": "Kimball House",
+      "vibe": "restaurant",
+      "hint": "Decatur, GA"
     },
     {
       "id": "burle-s-bar",
