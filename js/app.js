@@ -1151,6 +1151,7 @@
     $('resolvePlacesBtn').hidden = unresolved === 0;
     $('resolvePlacesBtn').disabled = resolving;
     $('exportPlacesBtn').hidden = unresolved > 0 || !locatedPlaces.length;
+    $('exportPlacesBtn').textContent = `Export the ½-mile list (${locatedPlaces.length})`;
 
     const status = $('placesStatus');
     if (placesStatus) {
@@ -1252,23 +1253,48 @@
     }
   }
 
-  /** Write the list back out with the coordinates filled in, ready to commit. */
+  /**
+   * Write the list back out, keeping only what is actually within half a mile.
+   *
+   * The rule is that the file holds nearby places, not the whole guide, so the
+   * export applies the filter rather than leaving it to whoever commits the
+   * result. Anything out of range or unfindable is reported, not silently
+   * dropped.
+   */
   function exportPlaces() {
-    const resolved = places.map((p) => {
-      const out = { id: p.id, name: p.name, vibe: p.vibe };
-      if (p.hint) out.hint = p.hint;
-      if (Number.isFinite(p.lat)) {
+    if (!locatedPlaces.length) {
+      toast('Nothing to export yet — resolve the places first.');
+      return;
+    }
+
+    const resolved = locatedPlaces
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((p) => {
+        const out = { id: p.id, name: p.name, vibe: p.vibe };
         out.lat = Number(p.lat.toFixed(6));
         out.lng = Number(p.lng.toFixed(6));
-      }
-      return out;
-    });
+        return out;
+      });
+
+    const dropped = farPlaces.length + places.filter((p) => p.notFound).length;
     Exporters.download(
       'places.json',
       'application/json',
-      `${JSON.stringify({ name: 'Places on and around the BeltLine', places: resolved }, null, 2)}\n`
+      `${JSON.stringify(
+        {
+          name: 'Places within half a mile of the BeltLine',
+          source: 'Filtered from data/sources/apple-maps-guide.json.',
+          note:
+            `Measured against the corridor in the app: ${resolved.length} within half a mile, ` +
+            `${dropped} left out for being further away or not findable in Atlanta.`,
+          places: resolved,
+        },
+        null,
+        2
+      )}\n`
     );
-    toast('Saved places.json — commit it and nobody has to look them up again.');
+    toast(`Exported ${resolved.length} places within half a mile; ${dropped} left out.`);
   }
 
   function addPlaceToRoute(id) {
