@@ -568,6 +568,97 @@ select, input[type="search"], input[type="password"], input[type="text"] {
 .result-add:hover { background: var(--green); color: #fff; }
 .result-place .result-kind { filter: grayscale(0.2); }
 
+/* ------------------------------------------------------------------ places */
+
+.places-controls { margin-top: 10px; }
+.place-groups { margin-top: 10px; }
+.place-groups:empty { display: none; }
+
+.place-region + .place-region { margin-top: 14px; }
+.place-region > h3 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin: 0 0 2px;
+  letter-spacing: 0.01em;
+}
+.place-region .region-count { color: var(--ink-faint); font-weight: 450; }
+
+.place-vibe { margin-top: 8px; }
+.place-vibe > h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+  margin: 0 0 4px;
+}
+.place-vibe .vibe-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+.place-list { list-style: none; margin: 0; padding: 0; }
+.place-list li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+.place-list li + li { margin-top: 3px; }
+.place-list li.is-favorite { border-color: var(--green); background: var(--green-wash); }
+
+.place-fav {
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  flex: none;
+  width: 28px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+.place-fav:hover { background: var(--green-wash); color: var(--amber); }
+.place-fav[aria-pressed="true"] { color: var(--amber); }
+
+.place-open {
+  font: inherit;
+  font-size: 0.83rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 6px 2px;
+  cursor: pointer;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.place-open:hover { text-decoration: underline; }
+
+.place-add {
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  flex: none;
+  width: 30px;
+  align-self: stretch;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--line);
+  color: var(--green);
+  cursor: pointer;
+}
+.place-add:hover { background: var(--green); color: #fff; }
+
 /* ---------------------------------------------------------------- download */
 
 .download-grid {

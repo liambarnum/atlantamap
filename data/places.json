@@ -1,0 +1,36 @@
+{
+  "name": "Places on and around the BeltLine",
+  "note": "PROVISIONAL starter set, to be replaced by the 83 places from the Apple Maps guide. Hand-maintained, unlike the generated files in this folder. Coordinates are deliberately absent: they are resolved in the browser by geocoding the name, then cached, because nothing here can reach a geocoder. Once resolved, 'Export resolved places' in the app writes this file back with coordinates filled in, after which nobody has to geocode again.",
+  "schema": {
+    "id": "slug, stable, used for the favourite in localStorage",
+    "name": "what to show, and what gets geocoded",
+    "vibe": "one of restaurant, bar, brewery, coffee, dessert, market, activity, shop, park",
+    "hint": "optional extra text for the geocoder when the name alone is ambiguous",
+    "lat": "optional, filled in once resolved",
+    "lng": "optional, filled in once resolved"
+  },
+  "places": [
+    { "id": "ponce-city-market", "name": "Ponce City Market", "vibe": "market" },
+    { "id": "krog-street-market", "name": "Krog Street Market", "vibe": "market" },
+    { "id": "ladybird", "name": "Ladybird Grove & Mess Hall", "vibe": "bar" },
+    { "id": "new-realm", "name": "New Realm Brewing Company", "vibe": "brewery" },
+    { "id": "two-urban-licks", "name": "Two Urban Licks", "vibe": "restaurant" },
+    { "id": "park-tavern", "name": "Park Tavern", "vibe": "bar", "hint": "500 10th St NE, Atlanta" },
+    { "id": "barcelona-inman", "name": "Barcelona Wine Bar Inman Park", "vibe": "bar" },
+    { "id": "skyline-park", "name": "Skyline Park Ponce City Market", "vibe": "activity" },
+    { "id": "h4w-skatepark", "name": "Historic Fourth Ward Skatepark", "vibe": "activity" },
+    { "id": "piedmont-park", "name": "Piedmont Park", "vibe": "park" },
+    { "id": "jenis-ponce", "name": "Jeni's Splendid Ice Creams Ponce City Market", "vibe": "dessert" },
+    { "id": "fox-bros-pcm", "name": "Fox Bros Bar-B-Q Ponce City Market", "vibe": "restaurant" },
+    { "id": "muchacho", "name": "Muchacho", "vibe": "coffee", "hint": "Reynoldstown, Atlanta" },
+    { "id": "little-tart-grant-park", "name": "Little Tart Bakeshop Grant Park", "vibe": "coffee" },
+    { "id": "monday-night-garage", "name": "Monday Night Garage", "vibe": "brewery" },
+    { "id": "wild-heaven-west-end", "name": "Wild Heaven Beer West End", "vibe": "brewery" },
+    { "id": "best-end-brewing", "name": "Best End Brewing Company", "vibe": "brewery" },
+    { "id": "asw-distillery", "name": "ASW Distillery Westside", "vibe": "bar" },
+    { "id": "hop-city", "name": "Hop City Craft Beer & Wine", "vibe": "shop", "hint": "Lee St SW, Atlanta" },
+    { "id": "halfway-crooks", "name": "Halfway Crooks Beer", "vibe": "brewery" },
+    { "id": "woods-chapel-bbq", "name": "Wood's Chapel BBQ", "vibe": "restaurant" },
+    { "id": "talat-market", "name": "Talat Market", "vibe": "restaurant" }
+  ]
+}

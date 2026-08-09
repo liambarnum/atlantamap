@@ -54,6 +54,9 @@
       hiddenSegments: [],
       hiddenStatuses: [],
       hiddenAccessTypes: [],
+      hiddenVibes: [],
+      showPlaces: true,
+      favoritePlaces: [],
       includeCorridor: true,
       includeAccess: false,
     },
@@ -79,6 +82,12 @@
   let renderedAccessIds = new Set();
   let renderedSegmentIds = new Set();
   let renderedPlaceIds = new Set();
+  let renderedVenueIds = new Set();
+  let places = [];          // the raw list, with coordinates once resolved
+  let locatedPlaces = [];   // within half a mile, with region and distance
+  let farPlaces = [];       // resolved but too far from the trail
+  let placesStatus = null;  // { kind, message }
+  let resolving = false;
 
   const $ = (id) => document.getElementById(id);
 
@@ -216,6 +225,9 @@
     // blocked. Fall back to fetch if those scripts are missing.
     corridor = window.BELTLINE_CORRIDOR || (await fetchJSON('data/beltline.geojson'));
     accessPoints = window.BELTLINE_ACCESS_POINTS || (await fetchJSON('data/access-points.geojson'));
+    const placeData = window.BELTLINE_PLACES || (await fetchJSON('data/places.json'));
+    // Coordinates already looked up in this browser come back without asking.
+    places = Places.hydrate((placeData && placeData.places) || []);
     rebuildSpine();
   }
 
@@ -618,6 +630,12 @@
       addPin(lat, lng, { name: feature.properties.name, sourceId: id });
       map.closePopup();
       toast(`Added “${feature.properties.name}” to the route.`);
+    } else if (action === 'add-place') {
+      addPlaceToRoute(id);
+    } else if (action === 'fav-place') {
+      toggleFavorite(id);
+      const place = locatedPlaces.find((p) => p.id === id);
+      if (place) showVenuePopup(place);
     } else if (action === 'add-result') {
       addResultToRoute(Number(target.dataset.index));
     } else if (action === 'copy-coords') {
@@ -674,6 +692,7 @@
     renderPinList();
     renderLegend();
     renderAccessControls();
+    renderPlaces();
     renderPlaceResults();
   }
 
@@ -1023,6 +1042,241 @@
     toast(`Added “${hit.name}” to the route.`);
   }
 
+  // ----------------------------------------------------------------- places
+
+  /** Corridor segments in the shape Places wants: name plus a measured path. */
+  function corridorPaths() {
+    return corridor.features
+      .filter((f) => f.geometry && f.geometry.type === 'LineString')
+      .map((f) => {
+        const coords = f.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+        return { name: (f.properties || {}).name || '', coords, cum: Geo.cumulative(coords) };
+      });
+  }
+
+  /** Recompute regions and the half-mile filter from whatever is resolved. */
+  function relocatePlaces() {
+    const result = Places.locate(places, corridorPaths());
+    locatedPlaces = result.near;
+    farPlaces = result.far;
+  }
+
+  const isFavorite = (id) => state.settings.favoritePlaces.includes(id);
+
+  function toggleFavorite(id) {
+    const favorites = state.settings.favoritePlaces;
+    const at = favorites.indexOf(id);
+    if (at >= 0) favorites.splice(at, 1);
+    else favorites.push(id);
+    renderPlaces();
+    drawPlaces();
+    save();
+  }
+
+  function visiblePlaces() {
+    const hidden = state.settings.hiddenVibes;
+    return locatedPlaces.filter((p) => !hidden.includes(p.vibe));
+  }
+
+  function drawPlaces() {
+    const wanted = new Set();
+    const show = state.settings.showPlaces;
+
+    for (const place of show ? visiblePlaces() : []) {
+      const id = `venue-${place.id}`;
+      wanted.add(id);
+      map.setMarker(id, {
+        position: [place.lat, place.lng],
+        icon: Icons.venueIcon(Places.vibeMeta(place.vibe).marker, isFavorite(place.id)),
+        title: place.name,
+        visible: true,
+        zIndex: 60,
+      });
+      map.setMarkerVisible(id, true);
+    }
+
+    for (const id of renderedVenueIds) if (!wanted.has(id)) map.removeMarker(id);
+    renderedVenueIds = wanted;
+  }
+
+  function showVenuePopup(place) {
+    const meta = Places.vibeMeta(place.vibe);
+    map.showPopup(
+      [place.lat, place.lng],
+      `<div class="popup">
+         <h3>${escapeHTML(place.name)}</h3>
+         <div class="meta">
+           <span class="status-badge" style="background:${meta.marker}">${escapeHTML(meta.label)}</span>
+           <span>${escapeHTML(place.region)}</span>
+         </div>
+         <div class="popup-actions">
+           <button class="primary" data-action="add-place" data-id="${escapeHTML(place.id)}">Add to route</button>
+           <button data-action="fav-place" data-id="${escapeHTML(place.id)}">
+             ${isFavorite(place.id) ? 'Unfavourite' : 'Favourite'}
+           </button>
+         </div>
+       </div>`
+    );
+  }
+
+  function renderPlaces() {
+    $('placesControls').style.display = state.settings.showPlaces ? '' : 'none';
+
+    // Vibe chips, only for the vibes the dataset actually uses.
+    const present = [...new Set(places.map((p) => p.vibe))].sort(
+      (a, b) =>
+        Places.VIBES.findIndex((v) => v.id === a) - Places.VIBES.findIndex((v) => v.id === b)
+    );
+    const chips = $('placeVibeChips');
+    chips.innerHTML = '';
+    for (const vibe of present) {
+      const meta = Places.vibeMeta(vibe);
+      const on = !state.settings.hiddenVibes.includes(vibe);
+      const count = locatedPlaces.filter((p) => p.vibe === vibe).length;
+      const button = document.createElement('button');
+      button.className = 'chip chip-status';
+      button.dataset.vibe = vibe;
+      button.setAttribute('aria-pressed', String(on));
+      button.innerHTML =
+        `<span class="chip-dot" style="background:${meta.marker}"></span>` +
+        `${escapeHTML(meta.label)} <em>${count}</em>`;
+      chips.appendChild(button);
+    }
+
+    const unresolved = places.filter((p) => !Number.isFinite(p.lat)).length;
+    $('placesCount').textContent = locatedPlaces.length
+      ? `(${visiblePlaces().length} within ½ mile)`
+      : '';
+    $('resolvePlacesBtn').hidden = unresolved === 0;
+    $('resolvePlacesBtn').disabled = resolving;
+    $('exportPlacesBtn').hidden = unresolved > 0 || !locatedPlaces.length;
+
+    const status = $('placesStatus');
+    if (placesStatus) {
+      status.textContent = placesStatus.message;
+      status.className = `search-status search-${placesStatus.kind}`;
+      status.hidden = false;
+    } else if (unresolved) {
+      status.textContent =
+        `${unresolved} place${unresolved === 1 ? '' : 's'} still need locating. ` +
+        'This looks each one up once and remembers it.';
+      status.className = 'search-status search-empty';
+      status.hidden = false;
+    } else if (farPlaces.length) {
+      status.textContent =
+        `${farPlaces.length} more ${farPlaces.length === 1 ? 'is' : 'are'} further than ` +
+        'half a mile from the trail and left out.';
+      status.className = 'search-status search-empty';
+      status.hidden = false;
+    } else {
+      status.hidden = true;
+    }
+
+    const container = $('placeGroups');
+    container.innerHTML = '';
+    const groups = Places.group(locatedPlaces, {
+      favorites: state.settings.favoritePlaces,
+      vibeFilter: present.filter((v) => !state.settings.hiddenVibes.includes(v)),
+    });
+
+    for (const group of groups) {
+      const section = document.createElement('section');
+      section.className = 'place-region';
+      section.innerHTML =
+        `<h3>${escapeHTML(group.region)} <span class="region-count">${group.count}</span></h3>`;
+
+      for (const vibe of group.vibes) {
+        const meta = Places.vibeMeta(vibe.vibe);
+        const block = document.createElement('div');
+        block.className = 'place-vibe';
+        block.innerHTML =
+          `<h4><span class="vibe-dot" style="background:${meta.marker}"></span>` +
+          `${escapeHTML(vibe.label)}</h4>`;
+
+        const list = document.createElement('ul');
+        list.className = 'place-list';
+        for (const place of vibe.places) {
+          const li = document.createElement('li');
+          if (place.favorite) li.className = 'is-favorite';
+          li.innerHTML = `
+            <button class="place-fav" data-fav="${escapeHTML(place.id)}"
+                    aria-pressed="${place.favorite}"
+                    title="${place.favorite ? 'Remove from favourites' : 'Favourite, to send it to the top'}"
+                    aria-label="${place.favorite ? 'Unfavourite' : 'Favourite'} ${escapeHTML(place.name)}"
+              >${place.favorite ? '★' : '☆'}</button>
+            <button class="place-open" data-place="${escapeHTML(place.id)}"
+                    title="${escapeHTML(place.name)}">${escapeHTML(place.name)}</button>
+            <button class="place-add" data-add-place="${escapeHTML(place.id)}"
+                    title="Add to the route"
+                    aria-label="Add ${escapeHTML(place.name)} to the route">+</button>`;
+          list.appendChild(li);
+        }
+        block.appendChild(list);
+        section.appendChild(block);
+      }
+
+      container.appendChild(section);
+    }
+  }
+
+  async function resolvePlaces() {
+    if (resolving) return;
+    resolving = true;
+    placesStatus = { kind: 'searching', message: 'Looking places up…' };
+    renderPlaces();
+
+    try {
+      places = await Places.resolve(places, {
+        preferGoogle: state.settings.basemap === 'google',
+        onProgress: ({ done, total, name, finished }) => {
+          placesStatus = finished
+            ? null
+            : { kind: 'searching', message: `Looking up ${name}… (${done + 1} of ${total})` };
+          renderPlaces();
+        },
+      });
+      relocatePlaces();
+      placesStatus = null;
+      renderPlaces();
+      drawPlaces();
+      toast(`${locatedPlaces.length} places are within half a mile of the trail.`);
+    } catch (err) {
+      console.warn('Could not resolve places:', err);
+      placesStatus = { kind: 'error', message: err.message || 'Could not look those places up.' };
+      renderPlaces();
+    } finally {
+      resolving = false;
+      renderPlaces();
+    }
+  }
+
+  /** Write the list back out with the coordinates filled in, ready to commit. */
+  function exportPlaces() {
+    const resolved = places.map((p) => {
+      const out = { id: p.id, name: p.name, vibe: p.vibe };
+      if (p.hint) out.hint = p.hint;
+      if (Number.isFinite(p.lat)) {
+        out.lat = Number(p.lat.toFixed(6));
+        out.lng = Number(p.lng.toFixed(6));
+      }
+      return out;
+    });
+    Exporters.download(
+      'places.json',
+      'application/json',
+      `${JSON.stringify({ name: 'Places on and around the BeltLine', places: resolved }, null, 2)}\n`
+    );
+    toast('Saved places.json — commit it and nobody has to look them up again.');
+  }
+
+  function addPlaceToRoute(id) {
+    const place = locatedPlaces.find((p) => p.id === id);
+    if (!place) return;
+    addPin(place.lat, place.lng, { name: place.name });
+    map.closePopup();
+    toast(`Added “${place.name}” to the route.`);
+  }
+
   function renderAccessControls() {
     $('accessControls').style.display = state.settings.showAccess ? '' : 'none';
 
@@ -1081,6 +1335,7 @@
   function redrawEverything() {
     drawCorridor();
     drawAccessPoints();
+    drawPlaces();
     drawPlaceMarkers();
     drawPins();
     drawRoute();
@@ -1132,6 +1387,11 @@
         } else {
           showAccessPopup(feature);
         }
+      } else if (id.startsWith('venue-')) {
+        const place = locatedPlaces.find((p) => p.id === id.slice('venue-'.length));
+        if (!place) return;
+        if (state.ui.dropMode) addPlaceToRoute(place.id);
+        else showVenuePopup(place);
       } else if (id.startsWith('place-marker-')) {
         const index = Number(id.slice('place-marker-'.length));
         const hit = state.ui.placeResults[index];
@@ -1461,6 +1721,45 @@
       if (open) openResult(Number(open.dataset.result));
     });
 
+    // --- places
+    $('showPlaces').addEventListener('change', (e) => {
+      state.settings.showPlaces = e.target.checked;
+      renderPlaces();
+      drawPlaces();
+      save();
+    });
+    $('placeVibeChips').addEventListener('click', (event) => {
+      const chip = event.target.closest('.chip-status');
+      if (!chip) return;
+      const hidden = state.settings.hiddenVibes;
+      const at = hidden.indexOf(chip.dataset.vibe);
+      if (at >= 0) hidden.splice(at, 1);
+      else hidden.push(chip.dataset.vibe);
+      renderPlaces();
+      drawPlaces();
+      save();
+    });
+    $('resolvePlacesBtn').addEventListener('click', resolvePlaces);
+    $('exportPlacesBtn').addEventListener('click', exportPlaces);
+    $('placeGroups').addEventListener('click', (event) => {
+      const fav = event.target.closest('button[data-fav]');
+      if (fav) {
+        toggleFavorite(fav.dataset.fav);
+        return;
+      }
+      const add = event.target.closest('button[data-add-place]');
+      if (add) {
+        addPlaceToRoute(add.dataset.addPlace);
+        return;
+      }
+      const open = event.target.closest('button[data-place]');
+      if (!open) return;
+      const place = locatedPlaces.find((p) => p.id === open.dataset.place);
+      if (!place) return;
+      map.panTo([place.lat, place.lng], 17);
+      showVenuePopup(place);
+    });
+
     // --- layers
     $('showCorridor').addEventListener('change', (e) => {
       state.settings.showCorridor = e.target.checked;
@@ -1610,6 +1909,7 @@
     $('closeLoop').checked = s.closeLoop;
     $('showCorridor').checked = s.showCorridor;
     $('showAccess').checked = s.showAccess;
+    $('showPlaces').checked = s.showPlaces;
     $('includeCorridor').checked = s.includeCorridor;
     $('includeAccess').checked = s.includeAccess;
     $('units').value = s.units;
@@ -1635,6 +1935,7 @@
     }
 
     restore();
+    relocatePlaces();
     syncControls();
     wireControls();
     computeRoute();

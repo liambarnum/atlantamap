@@ -123,6 +123,26 @@
       </div>
     </section>
 
+    <!-- ------------------------------------------------ places -->
+    <section class="panel" aria-labelledby="placesHeading">
+      <h2 id="placesHeading">Places <em id="placesCount"></em></h2>
+
+      <label class="check check-lead">
+        <input type="checkbox" id="showPlaces" checked>
+        <span>Show on the map</span>
+      </label>
+
+      <div class="places-controls" id="placesControls">
+        <div class="chips" id="placeVibeChips" role="group" aria-label="Filter places by vibe"></div>
+        <div class="search-status" id="placesStatus" hidden></div>
+        <div class="button-row">
+          <button class="btn btn-primary" id="resolvePlacesBtn">Find these on the map</button>
+          <button class="btn" id="exportPlacesBtn" title="Save the resolved coordinates back to a file">Export resolved</button>
+        </div>
+        <div class="place-groups" id="placeGroups"></div>
+      </div>
+    </section>
+
     <!-- ------------------------------------------------ download -->
     <section class="panel" aria-labelledby="downloadHeading">
       <h2 id="downloadHeading">Download &amp; share</h2>
@@ -221,10 +241,12 @@
 
 <script src="data/beltline.js"></script>
 <script src="data/access-points.js"></script>
+<script src="data/places.js"></script>
 <script src="js/geo.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/map.js"></script>
 <script src="js/geocode.js"></script>
+<script src="js/places.js"></script>
 <script src="js/exporters.js"></script>
 <script src="js/app.js"></script>
 </body>

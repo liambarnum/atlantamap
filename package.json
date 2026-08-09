@@ -4,7 +4,7 @@
   "private": true,
   "description": "A map of the Atlanta BeltLine: trace the loop, toggle access points, drop and order pins into a route, and download it as GeoJSON, GPX, KML or CSV.",
   "scripts": {
-    "test": "node tests/geo.test.js && node tests/geocode.test.js",
+    "test": "node tests/geo.test.js && node tests/geocode.test.js && node tests/places.test.js",
     "build:data": "node tools/build-data.js",
     "serve": "python3 -m http.server 8000"
   },

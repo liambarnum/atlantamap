@@ -65,5 +65,22 @@
     return { url: svgToDataUri(svg), size: [w, h], anchor: [w / 2, h] };
   }
 
-  global.Icons = { accessIcon, pinIcon, placeIcon, TYPE_STYLES };
+  /** A place from the guide: a small teardrop tinted by its vibe. */
+  function venueIcon(color, favorite) {
+    const w = 22;
+    const h = 30;
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+        <path d="M11 29S20 18.5 20 11A9 9 0 1 0 2 11c0 7.5 9 18 9 18z"
+              fill="${color}" stroke="#ffffff" stroke-width="2"/>
+        ${
+          favorite
+            ? '<path d="M11 5.6l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#ffffff"/>'
+            : '<circle cx="11" cy="10.5" r="3.2" fill="#ffffff"/>'
+        }
+      </svg>`;
+    return { url: svgToDataUri(svg), size: [w, h], anchor: [w / 2, h] };
+  }
+
+  global.Icons = { accessIcon, pinIcon, placeIcon, venueIcon, TYPE_STYLES };
 })(window);
