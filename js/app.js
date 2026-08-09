@@ -1892,7 +1892,10 @@
         const kind = e.target.value;
         $('googleKeyBlock').hidden = kind !== 'google';
         if (kind === 'google' && !state.settings.googleKey) {
-          toast('Paste a Google Maps API key below, then choose “Use this key”.', 6000);
+          // Revealing the field is not enough: the sidebar is long and the
+          // field can appear off-screen. Put it in front of the cursor.
+          revealGoogleKeyField();
+          toast('Paste your Google Maps API key, then choose “Use this key”.', 6000);
           return;
         }
         initMap(kind);
@@ -1927,6 +1930,16 @@
       renderSidebar();
       save();
     });
+  }
+
+  /** Bring the API key field into view and focus it, ready to paste into. */
+  function revealGoogleKeyField() {
+    const block = $('googleKeyBlock');
+    const input = $('googleKey');
+    block.hidden = false;
+    block.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    // Focus after the scroll starts, or Safari fights the smooth scroll.
+    setTimeout(() => input.focus({ preventScroll: true }), 120);
   }
 
   /** Push restored settings into the form controls. */
