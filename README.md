@@ -79,6 +79,24 @@ are open, 2 are interim and one short piece of the Northeast Trail is still prop
 never bridged across anything wider than a street crossing, so where the map shows a
 break there is no trail.
 
+**Places.** 75 spots transcribed from a shared Apple Maps guide, grouped by region and
+then by vibe — restaurants, bars, breweries, coffee, dessert, markets, shops, activities, parks.
+Anything further than half a mile from the trail is left out and the count of what was
+dropped is shown. The ☆ on any place sends it to the top of *its own category*, so
+favouriting a bar promotes it among the bars rather than burying the restaurants;
+favourites persist. Each place has a **+** to drop it into the route. No ratings, no
+review summaries — name and category only.
+
+The list carries names and vibes, not coordinates: **Find these on the map** geocodes
+each one in the browser, one at a time so as not to hammer a public geocoder, and caches
+the result permanently. **Export resolved** then writes the list back out with the
+coordinates filled in, so committing that file spares everyone else the lookup.
+
+Two things get left out, and both are counted rather than silently dropped: places more
+than half a mile from the trail, and places the Atlanta-restricted search cannot find —
+most of the guide is metro-wide, out in Marietta, Doraville and Roswell, so a good part
+of it falls away on one or the other.
+
 **Access points.** 51 trailheads, park entrances, transit connections and street
 crossings. Toggle the whole layer, filter by type with the chips, or filter by name,
 amenity or segment — the map and the list narrow together. Each has a popup with its
@@ -111,10 +129,12 @@ puts the whole route in the URL, so it survives being pasted to someone else wit
 account or server involved. *Open in Google Maps* hands the stops to Google Maps
 directions.
 
-Pins, route and settings are kept in `localStorage`. The only thing that ever leaves
-the page is the text you type into **Find a place**, and only when you press enter: it
-goes to [Nominatim](https://nominatim.openstreetmap.org/), or to Google's geocoder when
-the Google basemap is running. Typing alone stays local.
+Pins, route, favourites and settings are kept in `localStorage`. Two things leave the
+page, both to a geocoder — [Nominatim](https://nominatim.openstreetmap.org/), or Google's
+when the Google basemap is running — and both only when you ask: the text you type into
+**Find a place** once you press enter, and the place names sent by **Find these on the
+map**. Typing alone stays local, and resolved places are cached so they are only ever
+looked up once.
 
 ## Basemaps
 
@@ -191,6 +211,8 @@ js/geo.js               distance, projection onto a path, slicing a loop
 js/icons.js             marker artwork as SVG data URIs
 js/map.js               the map adapter: one interface, Leaflet and Google behind it
 js/geocode.js           place search: Google when available, Nominatim otherwise
+js/places.js            the places layer: regions, vibes, favourites, half-mile filter
+data/places.json        the places list, hand-maintained
 js/exporters.js         GeoJSON/GPX/KML/CSV out, GeoJSON/GPX/KML in
 js/app.js               state, routing, rendering, event wiring
 data/*.geojson          the corridor and access points
@@ -199,6 +221,7 @@ tools/osm.js            OSM export -> named, status-tagged, chained segments
 tools/build-data.js     runs that, snaps the access points, regenerates data/
 tests/geo.test.js       tests for the routing math
 tests/geocode.test.js   tests for the Atlanta search restriction
+tests/places.test.js    tests for grouping, favourites and the half-mile filter
 data/sources/           raw exports kept for reference; see its README
 vendor/leaflet/         Leaflet 1.9.4 (BSD-2-Clause)
 ```
@@ -222,12 +245,14 @@ corridor rather than a synthetic one.
 
 `tests/geocode.test.js` adds 30 checks over the Atlanta restriction: ZIP extraction,
 which suburbs are kept and which are dropped, the no-postcode fallback, and the
-BeltLine-first ranking.
+BeltLine-first ranking. `tests/places.test.js` adds 43 over the places layer: the
+half-mile cutoff, region naming, grouping by region then vibe, and that a favourite goes
+to the top of its own category without disturbing the others or jumping category.
 
-The UI was developed against a Playwright script of 151 checks covering the layers,
+The UI was developed against a Playwright script of 185 checks covering the layers,
 segment statuses and status filtering, place search (with the geocoder stubbed, including
-its empty and unreachable paths and that out-of-town results are filtered out), pin
-dropping, every reordering path, routing modes,
+its empty and unreachable paths and that out-of-town results are filtered out), the
+places layer end to end from resolution through favourites to export, pin dropping, every reordering path, routing modes,
 all four export formats, import round trips, share links and persistence.
 
 ## Credits

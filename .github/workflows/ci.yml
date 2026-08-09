@@ -24,3 +24,5 @@ jobs:
         run: node tests/geo.test.js
       - name: Place search tests
         run: node tests/geocode.test.js
+      - name: Places layer tests
+        run: node tests/places.test.js

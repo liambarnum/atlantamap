@@ -1,0 +1,406 @@
+{
+  "name": "Places on and around the BeltLine",
+  "source": "Transcribed from an Apple Maps guide ('Atlanta', 83 places) shared 2026-08-08.",
+  "note": "Hand-maintained, unlike the generated files here. Coordinates are absent until the browser resolves them: nothing in this repo can reach a geocoder. 'Export resolved' in the app writes this file back with them filled in. Only restaurants and places you would spend time in are kept; ChargePoint and Luxury Hand Car Wash were in the guide and are not.",
+  "incomplete": "75 of the guide's 83 places. The screenshots overlap imperfectly, so roughly six entries fell in the seams between them, and two were dropped as neither restaurants nor hangouts.",
+  "places": [
+    {
+      "id": "pala-bakery",
+      "name": "Pala Bakery",
+      "vibe": "dessert"
+    },
+    {
+      "id": "monday-night-brewing",
+      "name": "Monday Night Brewing",
+      "vibe": "brewery"
+    },
+    {
+      "id": "hoboken-cafe",
+      "name": "Hoboken Cafe",
+      "vibe": "restaurant",
+      "hint": "Marietta, GA"
+    },
+    {
+      "id": "morningside-nature-trail",
+      "name": "Morningside Nature Trail",
+      "vibe": "activity"
+    },
+    {
+      "id": "j-r-crickets",
+      "name": "J.R. Crickets",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "drawbar",
+      "name": "Drawbar",
+      "vibe": "bar"
+    },
+    {
+      "id": "little-sparrow",
+      "name": "Little Sparrow",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "yeppa",
+      "name": "Yeppa",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "delbar",
+      "name": "Delbar",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "poco-loco",
+      "name": "Poco Loco",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "bona-fide-deluxe",
+      "name": "Bona Fide Deluxe",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "fred-s-meat-bread",
+      "name": "Fred's Meat & Bread",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "wagyu-house",
+      "name": "Wagyu House",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "beef-grill",
+      "name": "Beef Grill",
+      "vibe": "restaurant",
+      "hint": "Sandy Springs, GA"
+    },
+    {
+      "id": "hankook-taqueria",
+      "name": "Hankook Taqueria",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "blake-s-on-the-park",
+      "name": "Blake's on the Park",
+      "vibe": "bar"
+    },
+    {
+      "id": "silver-comet-trail",
+      "name": "Silver Comet Trail",
+      "vibe": "activity",
+      "hint": "Smyrna, GA"
+    },
+    {
+      "id": "pollo-primo",
+      "name": "Pollo Primo",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "little-s-food-store",
+      "name": "Little's Food Store",
+      "vibe": "market"
+    },
+    {
+      "id": "owens-hull",
+      "name": "Owens & Hull",
+      "vibe": "restaurant",
+      "hint": "Smyrna, GA"
+    },
+    {
+      "id": "kinship-butcher-sundry",
+      "name": "Kinship Butcher Sundry",
+      "vibe": "market"
+    },
+    {
+      "id": "aviva-by-kameel",
+      "name": "Aviva by Kameel",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "sammy-s",
+      "name": "Sammy's",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "el-rey-del-taco",
+      "name": "El Rey del Taco",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
+    },
+    {
+      "id": "lanzhou-ramen",
+      "name": "LanZhou Ramen",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
+    },
+    {
+      "id": "the-bando",
+      "name": "The Bando",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "brito-supermarket",
+      "name": "Brito Supermarket",
+      "vibe": "market",
+      "hint": "Brookhaven, GA"
+    },
+    {
+      "id": "ruby-s-sourdough-pizza",
+      "name": "Ruby's Sourdough Pizza",
+      "vibe": "restaurant",
+      "hint": "Smyrna, GA"
+    },
+    {
+      "id": "eddie-s-attic",
+      "name": "Eddie's Attic",
+      "vibe": "activity",
+      "hint": "Decatur, GA"
+    },
+    {
+      "id": "victory-sandwich-bar",
+      "name": "Victory Sandwich Bar",
+      "vibe": "bar"
+    },
+    {
+      "id": "barcelona-wine-bar",
+      "name": "Barcelona Wine Bar",
+      "vibe": "bar"
+    },
+    {
+      "id": "painted-park",
+      "name": "Painted Park",
+      "vibe": "bar"
+    },
+    {
+      "id": "glide",
+      "name": "Glide",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "rumi-s-kitchen",
+      "name": "Rumi's Kitchen",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "quoc-huong-banh-mi",
+      "name": "Quoc Huong Banh Mi",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
+    },
+    {
+      "id": "crooked-tree-cafe",
+      "name": "Crooked Tree Cafe",
+      "vibe": "restaurant",
+      "hint": "Marietta, GA"
+    },
+    {
+      "id": "dog-beach-2",
+      "name": "Dog beach 2",
+      "vibe": "activity"
+    },
+    {
+      "id": "wrecking-bar-brewpub",
+      "name": "Wrecking Bar Brewpub",
+      "vibe": "brewery"
+    },
+    {
+      "id": "nuevo-laredo-cantina",
+      "name": "Nuevo Laredo Cantina",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "little-rey",
+      "name": "Little Rey",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "yaba-s-bagels",
+      "name": "Yaba's Bagels",
+      "vibe": "restaurant",
+      "hint": "Dunwoody, GA"
+    },
+    {
+      "id": "evergreen-butcher-baker",
+      "name": "Evergreen Butcher + Baker",
+      "vibe": "market"
+    },
+    {
+      "id": "westside-beltline",
+      "name": "Westside Beltline",
+      "vibe": "activity"
+    },
+    {
+      "id": "season",
+      "name": "Season",
+      "vibe": "restaurant",
+      "hint": "Marietta, GA"
+    },
+    {
+      "id": "fishmonger",
+      "name": "Fishmonger",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "the-porter",
+      "name": "The Porter",
+      "vibe": "bar"
+    },
+    {
+      "id": "home-grown",
+      "name": "Home grown",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "97-estoria",
+      "name": "97 Estoria",
+      "vibe": "bar"
+    },
+    {
+      "id": "virginia-highland-books",
+      "name": "Virginia Highland Books",
+      "vibe": "shop"
+    },
+    {
+      "id": "red-s-beer-garden",
+      "name": "Red's Beer Garden",
+      "vibe": "bar"
+    },
+    {
+      "id": "park-grounds",
+      "name": "Park Grounds",
+      "vibe": "coffee"
+    },
+    {
+      "id": "el-progreso",
+      "name": "El Progreso",
+      "vibe": "market"
+    },
+    {
+      "id": "east-palisades-trail",
+      "name": "East Palisades Trail",
+      "vibe": "activity",
+      "hint": "Sandy Springs, GA"
+    },
+    {
+      "id": "fudo",
+      "name": "Fúdo",
+      "vibe": "restaurant",
+      "hint": "Chamblee, GA"
+    },
+    {
+      "id": "no-246",
+      "name": "No. 246",
+      "vibe": "restaurant",
+      "hint": "Decatur, GA"
+    },
+    {
+      "id": "ray-s-on-the-river",
+      "name": "Ray's on the River",
+      "vibe": "restaurant",
+      "hint": "Sandy Springs, GA"
+    },
+    {
+      "id": "fum",
+      "name": "Fum",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "casi-cielo",
+      "name": "Casi Cielo",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "buttermilk-kitchen",
+      "name": "Buttermilk Kitchen",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "birdcage",
+      "name": "Birdcage",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "smileys-burger-club",
+      "name": "Smileys Burger Club",
+      "vibe": "restaurant",
+      "hint": "Decatur, GA"
+    },
+    {
+      "id": "southern-national",
+      "name": "Southern National",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "lazy-betty",
+      "name": "Lazy Betty",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "tipsy-thaiger",
+      "name": "Tipsy Thaiger",
+      "vibe": "restaurant",
+      "hint": "Roswell, GA"
+    },
+    {
+      "id": "kamayan-atl",
+      "name": "Kamayan ATL",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
+    },
+    {
+      "id": "corgi-cafe",
+      "name": "Corgi Cafe",
+      "vibe": "coffee"
+    },
+    {
+      "id": "banjo-coffee",
+      "name": "Banjo Coffee",
+      "vibe": "coffee",
+      "hint": "Avondale Estates, GA"
+    },
+    {
+      "id": "el-autentico-sinalouense",
+      "name": "El Autentico Sinalouense",
+      "vibe": "restaurant",
+      "hint": "Doraville, GA"
+    },
+    {
+      "id": "staplehouse",
+      "name": "Staplehouse",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "ela",
+      "name": "Ela",
+      "vibe": "restaurant"
+    },
+    {
+      "id": "frazie-s-meat-market",
+      "name": "Frazie's Meat & Market",
+      "vibe": "market"
+    },
+    {
+      "id": "kimball-house",
+      "name": "Kimball House",
+      "vibe": "restaurant",
+      "hint": "Decatur, GA"
+    },
+    {
+      "id": "burle-s-bar",
+      "name": "Burle's Bar",
+      "vibe": "bar"
+    },
+    {
+      "id": "barrel-proof-atlanta",
+      "name": "Barrel Proof Atlanta",
+      "vibe": "bar"
+    },
+    {
+      "id": "waffle-house",
+      "name": "Waffle House",
+      "vibe": "restaurant"
+    }
+  ]
+}
