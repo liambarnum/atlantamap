@@ -162,14 +162,15 @@
    */
   function hydrate(places) {
     const cache = loadCache();
-    return places
-      .map((place) => {
-        if (Number.isFinite(place.lat) && Number.isFinite(place.lng)) return place;
-        const cached = cache[place.id];
-        if (!cached || cached.notFound) return place;
-        return { ...place, lat: cached.lat, lng: cached.lng, fromCache: true };
-      })
-      .filter((place) => !(cache[place.id] && cache[place.id].notFound));
+    return places.map((place) => {
+      if (Number.isFinite(place.lat) && Number.isFinite(place.lng)) return place;
+      const cached = cache[place.id];
+      if (!cached) return place;
+      // Kept rather than dropped, so "we looked and found nothing" stays
+      // distinguishable from "we have not looked yet".
+      if (cached.notFound) return { ...place, notFound: true };
+      return { ...place, lat: cached.lat, lng: cached.lng, fromCache: true };
+    });
   }
 
   /**
@@ -193,6 +194,8 @@
     for (const place of places) {
       if (Number.isFinite(place.lat) && Number.isFinite(place.lng)) {
         out.push(place);
+      } else if (cache[place.id] && cache[place.id].notFound) {
+        out.push({ ...place, notFound: true });
       } else if (cache[place.id]) {
         out.push({ ...place, ...cache[place.id], fromCache: true });
       } else {
@@ -218,7 +221,12 @@
           const at = out.findIndex((p) => p.id === place.id);
           if (at >= 0) out[at] = { ...out[at], lat, lng };
         } else {
+          // Nothing in Atlanta matched. Most of this guide is metro-wide, and
+          // the search is restricted to the city, so this is the expected
+          // answer for anywhere out in Marietta or Doraville.
           cache[place.id] = { notFound: true };
+          const at = out.findIndex((p) => p.id === place.id);
+          if (at >= 0) out[at] = { ...out[at], notFound: true };
         }
       } catch (err) {
         if (err && err.name === 'AbortError') break;
@@ -231,7 +239,7 @@
     }
 
     if (opts.onProgress) opts.onProgress({ done, total: pending.length, finished: true });
-    return out.filter((p) => !(cache[p.id] && cache[p.id].notFound));
+    return out;
   }
 
   function clearCache() {

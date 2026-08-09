@@ -79,8 +79,8 @@ are open, 2 are interim and one short piece of the Northeast Trail is still prop
 never bridged across anything wider than a street crossing, so where the map shows a
 break there is no trail.
 
-**Places.** A list of spots on and around the BeltLine, grouped by region and then by
-vibe — restaurants, bars, breweries, coffee, dessert, markets, shops, activities, parks.
+**Places.** 75 spots transcribed from a shared Apple Maps guide, grouped by region and
+then by vibe — restaurants, bars, breweries, coffee, dessert, markets, shops, activities, parks.
 Anything further than half a mile from the trail is left out and the count of what was
 dropped is shown. The ☆ on any place sends it to the top of *its own category*, so
 favouriting a bar promotes it among the bars rather than burying the restaurants;
@@ -91,6 +91,11 @@ The list carries names and vibes, not coordinates: **Find these on the map** geo
 each one in the browser, one at a time so as not to hammer a public geocoder, and caches
 the result permanently. **Export resolved** then writes the list back out with the
 coordinates filled in, so committing that file spares everyone else the lookup.
+
+Two things get left out, and both are counted rather than silently dropped: places more
+than half a mile from the trail, and places the Atlanta-restricted search cannot find —
+most of the guide is metro-wide, out in Marietta, Doraville and Roswell, so a good part
+of it falls away on one or the other.
 
 **Access points.** 51 trailheads, park entrances, transit connections and street
 crossings. Toggle the whole layer, filter by type with the chips, or filter by name,
@@ -244,7 +249,7 @@ BeltLine-first ranking. `tests/places.test.js` adds 43 over the places layer: th
 half-mile cutoff, region naming, grouping by region then vibe, and that a favourite goes
 to the top of its own category without disturbing the others or jumping category.
 
-The UI was developed against a Playwright script of 180 checks covering the layers,
+The UI was developed against a Playwright script of 185 checks covering the layers,
 segment statuses and status filtering, place search (with the geocoder stubbed, including
 its empty and unreachable paths and that out-of-town results are filtered out), the
 places layer end to end from resolution through favourites to export, pin dropping, every reordering path, routing modes,

@@ -1143,7 +1143,8 @@
       chips.appendChild(button);
     }
 
-    const unresolved = places.filter((p) => !Number.isFinite(p.lat)).length;
+    const unresolved = places.filter((p) => !Number.isFinite(p.lat) && !p.notFound).length;
+    const notFound = places.filter((p) => p.notFound).length;
     $('placesCount').textContent = locatedPlaces.length
       ? `(${visiblePlaces().length} within ½ mile)`
       : '';
@@ -1162,10 +1163,11 @@
         'This looks each one up once and remembers it.';
       status.className = 'search-status search-empty';
       status.hidden = false;
-    } else if (farPlaces.length) {
-      status.textContent =
-        `${farPlaces.length} more ${farPlaces.length === 1 ? 'is' : 'are'} further than ` +
-        'half a mile from the trail and left out.';
+    } else if (farPlaces.length || notFound) {
+      const parts = [];
+      if (farPlaces.length) parts.push(`${farPlaces.length} further than half a mile from the trail`);
+      if (notFound) parts.push(`${notFound} not found in Atlanta`);
+      status.textContent = `Left out: ${parts.join(', ')}.`;
       status.className = 'search-status search-empty';
       status.hidden = false;
     } else {
