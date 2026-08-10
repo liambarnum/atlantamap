@@ -229,7 +229,9 @@ check('chainFragments: ignores degenerate one-point fragments',
 
   const trail = corridor.features.filter((f) => !f.properties.spur);
   const built = trail.reduce((sum, f) => sum + f.properties.lengthMeters, 0);
-  near(built / 1609.344, 19.2, 2.5, 'corridor: the built trail is around 19 miles');
+  // 19.2 mi plus the Northwest/Northside/Northeast connections added around
+  // Collier Hills, Brookwood Hills and Piedmont Heights (~4 mi).
+  near(built / 1609.344, 23.2, 2.5, 'corridor: the built trail is around 23 miles');
   check('corridor: every segment has a known status',
     corridor.features.every((f) =>
       ['open', 'interim', 'construction', 'planned', 'closed'].includes(f.properties.status)),
@@ -246,8 +248,11 @@ check('chainFragments: ignores degenerate one-point fragments',
   const spine = chained.coords;
   const cum = Geo.cumulative(spine);
 
+  // northwest-open-2 and northside-open-2 are both real dead-end spurs off a
+  // junction the main line also passes through, so the single-path spine can
+  // only follow one branch at each junction and drops the other.
   check('corridor: the spine picks up nearly every segment',
-    chained.dropped.length <= 1, `${chained.dropped.length} dropped`);
+    chained.dropped.length <= 2, `${chained.dropped.length} dropped`);
   // The spine bridges real gaps, but never by more than the limit.
   check('corridor: no bridge exceeds the limit',
     Math.max(...chained.bridges) <= 2500, `${Math.round(Math.max(...chained.bridges))} m`);

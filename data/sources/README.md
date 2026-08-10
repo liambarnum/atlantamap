@@ -55,6 +55,19 @@ node tools/build-data.js
 The build prints what it produced and flags any access point it had to move a
 long way to reach the trail.
 
+## Hand-traced additions (2026-08-10)
+
+Nine ways with `@id` starting `way/hand-traced-` were added by hand rather than
+pulled from Overpass: the Northwest/Northeast connection through Bobby Jones
+Golf Course, Collier Hills North, Colonial Homes and Brookwood Hills up to
+Lindbergh, none of which OSM has mapped yet. Overpass and beltline.org were
+both unreachable from the environment that added them, so their geometry is
+approximated from a beltline.org/map screenshot and anchored to the real
+corridor only at the points where they touch existing OSM ways. Treat their
+shape as indicative, not surveyed — replace them the next time this file is
+refreshed from Overpass and that stretch has proposed/construction ways of
+its own.
+
 ## What was here before
 
 An export of relation 13048389 was tried first and discarded. It was

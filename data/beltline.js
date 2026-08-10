@@ -2905,6 +2905,36 @@ window.BELTLINE_CORRIDOR = {
     },
     {
       "type": "Feature",
+      "id": "northwest-planned",
+      "properties": {
+        "id": "northwest-planned",
+        "name": "Northwest Trail",
+        "status": "planned",
+        "note": "",
+        "source": "OpenStreetMap",
+        "spur": false,
+        "lengthMeters": 2162
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.420604,
+            33.792173
+          ],
+          [
+            -84.422,
+            33.8005
+          ],
+          [
+            -84.410327,
+            33.795239
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
       "id": "northwest-open-1",
       "properties": {
         "id": "northwest-open-1",
@@ -3333,6 +3363,32 @@ window.BELTLINE_CORRIDOR = {
           [
             -84.408272,
             33.796088
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "northside-planned-1",
+      "properties": {
+        "id": "northside-planned-1",
+        "name": "Northside Trail (part 1)",
+        "status": "planned",
+        "note": "",
+        "source": "OpenStreetMap",
+        "spur": false,
+        "lengthMeters": 1705
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.397944,
+            33.812947
+          ],
+          [
+            -84.379635,
+            33.814866
           ]
         ]
       }
@@ -4065,6 +4121,32 @@ window.BELTLINE_CORRIDOR = {
           [
             -84.397792,
             33.81532
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "northside-planned-2",
+      "properties": {
+        "id": "northside-planned-2",
+        "name": "Northside Trail (part 2)",
+        "status": "planned",
+        "note": "",
+        "source": "OpenStreetMap",
+        "spur": false,
+        "lengthMeters": 1214
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.408272,
+            33.796088
+          ],
+          [
+            -84.400503,
+            33.804894
           ]
         ]
       }
@@ -5013,10 +5095,10 @@ window.BELTLINE_CORRIDOR = {
     },
     {
       "type": "Feature",
-      "id": "northeast-planned",
+      "id": "northeast-planned-1",
       "properties": {
-        "id": "northeast-planned",
-        "name": "Northeast Trail",
+        "id": "northeast-planned-1",
+        "name": "Northeast Trail (part 1)",
         "status": "planned",
         "note": "",
         "source": "OpenStreetMap",
@@ -5093,6 +5175,66 @@ window.BELTLINE_CORRIDOR = {
           [
             -84.379635,
             33.814866
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "northeast-construction",
+      "properties": {
+        "id": "northeast-construction",
+        "name": "Northeast Trail",
+        "status": "construction",
+        "note": "",
+        "source": "OpenStreetMap",
+        "spur": false,
+        "lengthMeters": 808
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.379635,
+            33.814866
+          ],
+          [
+            -84.376,
+            33.8158
+          ],
+          [
+            -84.3715,
+            33.8175
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "northeast-planned-2",
+      "properties": {
+        "id": "northeast-planned-2",
+        "name": "Northeast Trail (part 2)",
+        "status": "planned",
+        "note": "",
+        "source": "OpenStreetMap",
+        "spur": false,
+        "lengthMeters": 597
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.3715,
+            33.8175
+          ],
+          [
+            -84.369,
+            33.82
+          ],
+          [
+            -84.3672,
+            33.8215
           ]
         ]
       }

@@ -72,8 +72,11 @@ its length.
 The statuses are **Open** (green), **Interim** (blue — walkable but not the finished
 surface), **Building** (orange), **Planned** (grey) and **Closed** (red), derived from
 the OSM tags. Anything outside that list fails the build, so a typo cannot quietly
-become a sixth category. As currently mapped: 19.2 miles of trail, of which 14 stretches
-are open, 2 are interim and one short piece of the Northeast Trail is still proposed.
+become a sixth category. As currently mapped: 23.2 miles of trail, of which 14 stretches
+are open, 2 are interim, 5 are planned and one — the Northeast Trail's approach to
+Lindbergh — is under construction. The connection through Bobby Jones Golf Course,
+Collier Hills North, Colonial Homes and Brookwood Hills up to Lindbergh isn't in OSM yet;
+see "Hand-traced additions" in `data/sources/README.md` for how it was approximated.
 
 **The gaps in the loop are real.** The BeltLine is not continuous yet, and segments are
 never bridged across anything wider than a street crossing, so where the map shows a

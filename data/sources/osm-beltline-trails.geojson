@@ -24005,6 +24005,133 @@
         ]
       },
       "id": "way/1531475461"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/hand-traced-nw-planned-1",
+        "name": "Atlanta BeltLine Northwest Trail",
+        "highway": "proposed",
+        "source_note": "Approximate — hand-traced from a beltline.org/map screenshot on 2026-08-10, not surveyed OSM geometry. Replace with a real Overpass export once OSM has this stretch mapped."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.420604,
+            33.792173
+          ],
+          [
+            -84.422,
+            33.8005
+          ],
+          [
+            -84.410327,
+            33.795239
+          ]
+        ]
+      },
+      "id": "way/hand-traced-nw-planned-1"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/hand-traced-ne-construction-1",
+        "name": "Atlanta Beltline Northeast Trail",
+        "highway": "construction",
+        "source_note": "Approximate — hand-traced from a beltline.org/map screenshot on 2026-08-10, not surveyed OSM geometry. Replace with a real Overpass export once OSM has this stretch mapped."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.379635,
+            33.814866
+          ],
+          [
+            -84.376,
+            33.8158
+          ],
+          [
+            -84.3715,
+            33.8175
+          ]
+        ]
+      },
+      "id": "way/hand-traced-ne-construction-1"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/hand-traced-ne-planned-1",
+        "name": "Atlanta BeltLine Northeast Trail",
+        "highway": "proposed",
+        "source_note": "Approximate — hand-traced from a beltline.org/map screenshot on 2026-08-10, not surveyed OSM geometry. Replace with a real Overpass export once OSM has this stretch mapped."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.3715,
+            33.8175
+          ],
+          [
+            -84.369,
+            33.82
+          ],
+          [
+            -84.3672,
+            33.8215
+          ]
+        ]
+      },
+      "id": "way/hand-traced-ne-planned-1"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/hand-traced-gap-nw-northside",
+        "name": "Atlanta BeltLine Northside Trail",
+        "highway": "proposed",
+        "source_note": "Approximate — hand-traced from a beltline.org/map screenshot on 2026-08-10, not surveyed OSM geometry. Replace with a real Overpass export once OSM has this stretch mapped."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.408272,
+            33.796088
+          ],
+          [
+            -84.400503,
+            33.804894
+          ]
+        ]
+      },
+      "id": "way/hand-traced-gap-nw-northside"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/hand-traced-gap-northside-ne",
+        "name": "Atlanta BeltLine Northside Trail",
+        "highway": "proposed",
+        "source_note": "Approximate — hand-traced from a beltline.org/map screenshot on 2026-08-10, not surveyed OSM geometry. Replace with a real Overpass export once OSM has this stretch mapped."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -84.397944,
+            33.812947
+          ],
+          [
+            -84.379635,
+            33.814866
+          ]
+        ]
+      },
+      "id": "way/hand-traced-gap-northside-ne"
     }
   ]
 }

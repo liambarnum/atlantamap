@@ -874,19 +874,19 @@
       "properties": {
         "id": "ap-040",
         "name": "Howell Mill Road",
-        "segment": "northwest-open-1",
+        "segment": "northwest-planned",
         "type": "street",
         "amenities": [
           "food"
         ],
         "description": "Planned alignment.",
-        "snappedMeters": 887
+        "snappedMeters": 0
       },
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.422216,
-          33.792483
+          -84.422,
+          33.8005
         ]
       }
     },
@@ -985,20 +985,20 @@
       "properties": {
         "id": "ap-045",
         "name": "Peachtree Road / Brookwood",
-        "segment": "northside-open-1",
+        "segment": "northside-planned-1",
         "type": "street",
         "amenities": [
           "bus",
           "food"
         ],
         "description": "Planned crossing.",
-        "snappedMeters": 828
+        "snappedMeters": 470
       },
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.397944,
-          33.812947
+          -84.390631,
+          33.813713
         ]
       }
     },
@@ -1008,20 +1008,20 @@
       "properties": {
         "id": "ap-046",
         "name": "Armour Yards",
-        "segment": "northeast-planned",
+        "segment": "northeast-construction",
         "type": "trailhead",
         "amenities": [
           "food",
           "parking"
         ],
         "description": "Armour Drive industrial district.",
-        "snappedMeters": 373
+        "snappedMeters": 157
       },
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.376633,
-          33.81244
+          -84.374698,
+          33.816292
         ]
       }
     },
@@ -1031,7 +1031,7 @@
       "properties": {
         "id": "ap-047",
         "name": "Lindbergh Center MARTA",
-        "segment": "northeast-planned",
+        "segment": "northeast-planned-2",
         "type": "transit",
         "amenities": [
           "rail",
@@ -1039,13 +1039,13 @@
           "parking"
         ],
         "description": "Lindbergh Center station — northern top of the loop.",
-        "snappedMeters": 1250
+        "snappedMeters": 0
       },
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.378404,
-          33.815182
+          -84.3672,
+          33.8215
         ]
       }
     },
@@ -1055,20 +1055,20 @@
       "properties": {
         "id": "ap-048",
         "name": "Piedmont Road",
-        "segment": "northeast-planned",
+        "segment": "northeast-planned-2",
         "type": "street",
         "amenities": [
           "bus",
           "food"
         ],
         "description": "Piedmont Heights.",
-        "snappedMeters": 1401
+        "snappedMeters": 659
       },
       "geometry": {
         "type": "Point",
         "coordinates": [
-          -84.37663,
-          33.812438
+          -84.367531,
+          33.821224
         ]
       }
     },
