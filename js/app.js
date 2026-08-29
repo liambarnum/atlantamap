@@ -687,6 +687,31 @@
 
   // -------------------------------------------------------------- sidebar UI
 
+  // Below this width the sidebar stops being a column beside the map and
+  // becomes a drawer on top of it.
+  const narrowQuery = window.matchMedia('(max-width: 860px)');
+
+  function isNarrow() {
+    return narrowQuery.matches;
+  }
+
+  function sidebarIsOpen() {
+    return !$('app').classList.contains('sidebar-collapsed');
+  }
+
+  function setSidebar(open) {
+    $('app').classList.toggle('sidebar-collapsed', !open);
+    $('sidebarToggle').setAttribute('aria-expanded', String(open));
+    // Leaflet and Google both need telling that their viewport changed, once
+    // the drawer has finished sliding.
+    setTimeout(() => map && map.invalidateSize(), 220);
+  }
+
+  /** Anything that moves the map has to get the drawer out of the way first. */
+  function revealMap() {
+    if (isNarrow() && sidebarIsOpen()) setSidebar(false);
+  }
+
   function renderSidebar() {
     renderRoutePanel();
     renderPinList();
@@ -1010,6 +1035,7 @@
   function openResult(index) {
     const hit = state.ui.placeResults[index];
     if (!hit) return;
+    revealMap();
     map.panTo([hit.lat, hit.lng], hit.kind === 'segment' ? 14 : 16);
     if (hit.kind === 'access') {
       const feature = accessPoints.features.find((f) => f.properties.id === hit.id);
@@ -1464,12 +1490,14 @@
 
   function fitLoop() {
     if (!map) return;
+    revealMap();
     const all = [...(spine || [])];
     for (const pin of state.pins) all.push([pin.lat, pin.lng]);
     if (all.length) map.fitBounds(Geo.bounds(all), 40);
   }
 
   function setDropMode(on) {
+    if (on) revealMap();
     state.ui.dropMode = on;
     $('dropModeBtn').setAttribute('aria-pressed', String(on));
     $('dropHint').hidden = !on;
@@ -1589,18 +1617,29 @@
   // ----------------------------------------------------------------- wiring
 
   function wireControls() {
-    $('sidebarToggle').addEventListener('click', () => {
-      const collapsed = $('app').classList.toggle('sidebar-collapsed');
-      $('sidebarToggle').setAttribute('aria-expanded', String(!collapsed));
-      // Leaflet and Google both need telling that their viewport changed.
-      setTimeout(() => map && map.invalidateSize(), 200);
+    $('sidebarToggle').addEventListener('click', () => setSidebar(!sidebarIsOpen()));
+    $('sidebarBackdrop').addEventListener('click', () => setSidebar(false));
+
+    // Crossing the breakpoint changes what the sidebar is for: a drawer over
+    // the map starts shut, a column beside it starts open.
+    const onBreakpoint = (event) => setSidebar(!event.matches);
+    if (narrowQuery.addEventListener) narrowQuery.addEventListener('change', onBreakpoint);
+    else narrowQuery.addListener(onBreakpoint);
+
+    // Rotating a phone, or the browser chrome sliding away, resizes the map.
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => map && map.invalidateSize(), 180);
     });
 
     $('dropModeBtn').addEventListener('click', () => setDropMode(!state.ui.dropMode));
     $('fitLoopBtn').addEventListener('click', fitLoop);
 
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && state.ui.dropMode) setDropMode(false);
+      if (event.key !== 'Escape') return;
+      if (state.ui.dropMode) setDropMode(false);
+      else if (isNarrow() && sidebarIsOpen()) setSidebar(false);
     });
 
     // --- route controls
@@ -1646,6 +1685,7 @@
           break;
         case 'locate':
           state.ui.selectedPinId = id;
+          revealMap();
           map.panTo([pin.lat, pin.lng], 16);
           showPinPopup(pin);
           renderSidebar();
@@ -1784,6 +1824,7 @@
       if (!open) return;
       const place = locatedPlaces.find((p) => p.id === open.dataset.place);
       if (!place) return;
+      revealMap();
       map.panTo([place.lat, place.lng], 17);
       showVenuePopup(place);
     });
@@ -1846,6 +1887,7 @@
       const feature = accessPoints.features.find((f) => f.properties.id === button.dataset.ap);
       if (!feature) return;
       const [lng, lat] = feature.geometry.coordinates;
+      revealMap();
       map.panTo([lat, lng], 16);
       showAccessPopup(feature);
     });
@@ -1979,6 +2021,7 @@
     relocatePlaces();
     syncControls();
     wireControls();
+    if (isNarrow()) setSidebar(false);
     computeRoute();
     renderSidebar();
 
