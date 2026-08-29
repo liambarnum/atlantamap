@@ -131,6 +131,13 @@ puts the whole route in the URL, so it survives being pasted to someone else wit
 account or server involved. *Open in Google Maps* hands the stops to Google Maps
 directions.
 
+**On a phone.** The sidebar becomes a drawer over the map: it starts shut so the app
+opens onto the map itself, ☰ slides it in, and tapping the dimmed map, pressing
+<kbd>Esc</kbd>, or doing anything that moves the map — **Drop pin**, **Fit loop**, or
+picking a place, access point or stop from a list — slides it back out. Controls and
+targets grow on touch screens, and text fields are set at 16px so iOS does not zoom the
+page in when one takes focus.
+
 Pins, route, favourites and settings are kept in `localStorage`. Two things leave the
 page, both to a geocoder — [Nominatim](https://nominatim.openstreetmap.org/), or Google's
 when the Google basemap is running — and both only when you ask: the text you type into

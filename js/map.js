@@ -16,6 +16,12 @@
   const LEAFLET_CSS = 'vendor/leaflet/leaflet.css';
   const LEAFLET_JS = 'vendor/leaflet/leaflet.js';
 
+  /** A popup wider than the phone it is on gets clipped by the map edge. */
+  function popupWidth() {
+    const room = (global.innerWidth || 320) - 60;
+    return Math.max(180, Math.min(280, room));
+  }
+
   function loadScript(src, attrs) {
     return new Promise((resolve, reject) => {
       const el = document.createElement('script');
@@ -86,7 +92,7 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(this.map);
 
-      this.popup = L.popup({ maxWidth: 280, autoPanPadding: [24, 24] });
+      this.popup = L.popup({ maxWidth: popupWidth(), autoPanPadding: [24, 24] });
       this.map.on('click', (e) => this.emit('mapClick', [e.latlng.lat, e.latlng.lng]));
       this.map.on('moveend', () => this.emit('mapMove'));
       return this;
@@ -278,7 +284,7 @@
         clickableIcons: false,
       });
 
-      this.infoWindow = new gm.InfoWindow({ maxWidth: 280 });
+      this.infoWindow = new gm.InfoWindow({ maxWidth: popupWidth() });
       this.map.addListener('click', (e) => this.emit('mapClick', [e.latLng.lat(), e.latLng.lng()]));
       this.map.addListener('idle', () => this.emit('mapMove'));
       return this;

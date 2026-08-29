@@ -54,6 +54,7 @@
 html, body {
   margin: 0;
   height: 100%;
+  overflow: hidden;
   font-family: var(--font);
   color: var(--ink);
   background: var(--bg);
@@ -79,11 +80,16 @@ kbd {
   grid-template-columns: var(--sidebar-w) 1fr;
   grid-template-rows: var(--topbar-h) 1fr;
   grid-template-areas: "topbar topbar" "sidebar map";
+  height: 100vh;
   height: 100dvh;
+  max-width: 100%;
 }
 
-.app.sidebar-collapsed {
-  grid-template-columns: 0 1fr;
+/* Only the two-column layout closes the sidebar by collapsing its track. On a
+   phone the sidebar is a fixed overlay and the grid has a single column, so
+   zeroing a track here would zero the map with it. */
+@media (min-width: 861px) {
+  .app.sidebar-collapsed { grid-template-columns: 0 1fr; }
 }
 .app.sidebar-collapsed .sidebar {
   transform: translateX(-100%);
@@ -97,25 +103,30 @@ kbd {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 14px;
+  padding-left: max(14px, env(safe-area-inset-left));
+  padding-right: max(14px, env(safe-area-inset-right));
   background: var(--panel);
+  min-width: 0;
   border-bottom: 1px solid var(--line);
   z-index: 500;
 }
 
 .topbar h1 {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 1.02rem;
   letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.topbar h1 span { color: var(--ink-faint); font-weight: 450; }
+.topbar h1 .title-sub { color: var(--ink-faint); font-weight: 450; }
 
 .topbar-actions {
   margin-left: auto;
   display: flex;
   gap: 8px;
+  flex: none;
 }
 
 /* ---------------------------------------------------------------- sidebar */
@@ -127,6 +138,8 @@ kbd {
   background: var(--bg);
   border-right: 1px solid var(--line);
   padding: 12px;
+  padding-left: max(12px, env(safe-area-inset-left));
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -475,7 +488,7 @@ select, input[type="search"], input[type="password"], input[type="text"] {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 210px;
+  max-height: min(210px, 40dvh);
   overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -529,7 +542,7 @@ select, input[type="search"], input[type="password"], input[type="text"] {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   overflow: hidden;
-  max-height: 300px;
+  max-height: min(300px, 45dvh);
   overflow-y: auto;
 }
 .result { display: flex; align-items: stretch; }
@@ -712,6 +725,8 @@ select, input[type="search"], input[type="password"], input[type="text"] {
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   padding: 7px 15px;
+  max-width: calc(100% - 24px);
+  text-align: center;
   font-size: 0.8rem;
   box-shadow: var(--shadow-md);
   pointer-events: none;
@@ -744,13 +759,14 @@ select, input[type="search"], input[type="password"], input[type="text"] {
   padding: 9px 16px;
   border-radius: 999px;
   box-shadow: var(--shadow-md);
+  bottom: calc(20px + env(safe-area-inset-bottom));
   max-width: min(90vw, 460px);
   text-align: center;
 }
 
 /* ---------------------------------------------------------------- popups */
 
-.popup { font-family: var(--font); min-width: 180px; max-width: 250px; }
+.popup { font-family: var(--font); min-width: 0; width: 100%; max-width: min(250px, 72vw); }
 .popup h3 { margin: 0 0 3px; font-size: 0.92rem; font-weight: 650; }
 .popup .meta {
   display: flex;
@@ -814,20 +830,100 @@ select, input[type="search"], input[type="password"], input[type="text"] {
 
 /* ---------------------------------------------------------------- narrow */
 
-@media (max-width: 860px) {
-  :root { --sidebar-w: min(88vw, 372px); }
+/* On a phone the sidebar floats over the map, so it needs something behind it
+   that both dims the map and gives a thumb somewhere safe to dismiss it. */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: var(--topbar-h) 0 0 0;
+  z-index: 350;
+  border: 0;
+  padding: 0;
+  background: rgba(12, 18, 16, 0.4);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  .app { grid-template-columns: 1fr; grid-template-areas: "topbar" "map"; }
+@media (max-width: 860px) {
+  :root { --sidebar-w: min(92vw, 372px); }
+
+  .app, .app.sidebar-collapsed {
+    grid-template-columns: 1fr;
+    grid-template-areas: "topbar" "map";
+  }
   .sidebar {
     position: fixed;
     top: var(--topbar-h);
     bottom: 0;
     left: 0;
     width: var(--sidebar-w);
+    max-width: 100%;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
     box-shadow: var(--shadow-md);
   }
   .app.sidebar-collapsed .sidebar { transform: translateX(-100%); }
-  .topbar h1 span { display: none; }
+  .app:not(.sidebar-collapsed) .sidebar-backdrop { display: block; }
+  .topbar h1 .title-sub { display: none; }
+
+  /* Reclaim the indent the nested controls use on a wide sidebar. */
+  .corridor-controls, .access-controls { padding-left: 12px; }
+}
+
+/* Phones. Everything has to fit across ~320px of screen without a sideways
+   scroll, so the title gives up room first and the grids fall to one column. */
+@media (max-width: 560px) {
+  :root { --topbar-h: 52px; }
+
+  .topbar { gap: 8px; }
+  .topbar h1 { font-size: 0.94rem; min-width: 0; }
+  .topbar-actions { gap: 6px; }
+  .topbar .btn { padding: 7px 10px; font-size: 0.8rem; }
+
+  .panel { padding: 12px; }
+  .field-row { flex-direction: column; gap: 10px; }
+  .download-grid { grid-template-columns: 1fr; }
+  .stats { flex-wrap: wrap; }
+  .stats > div { flex: 1 1 46%; }
+  .map-notice { font-size: 0.75rem; padding: 6px 12px; }
+}
+
+/* Very small phones: the topbar labels are the last thing that can go. */
+@media (max-width: 430px) {
+  .topbar { gap: 6px; }
+  .topbar h1 { font-size: 0.88rem; }
+  .topbar h1 .title-city { display: none; }
+  .topbar-actions { gap: 5px; }
+  .topbar .btn { padding: 7px 8px; }
+}
+
+/* Touch. Fingers need bigger targets than a mouse, and iOS zooms the page in
+   whenever it focuses a field whose text is under 16px. */
+@media (pointer: coarse) {
+  select, input[type="search"], input[type="password"], input[type="text"] {
+    font-size: 16px;
+    padding: 9px 10px;
+  }
+  .btn { min-height: 40px; padding: 9px 13px; }
+  .icon-btn { min-height: 40px; min-width: 40px; }
+  .check input { width: 18px; height: 18px; }
+  .chip { padding: 6px 12px; font-size: 0.78rem; }
+  .segmented label { padding: 11px 6px; }
+  .pin-item { padding: 7px 6px; }
+  .pin-actions button { width: 32px; height: 32px; }
+  .pin-name { padding: 6px 5px; }
+  .legend button { padding: 9px 7px; }
+  .access-list button { padding: 11px 9px; }
+  .result-open { padding: 11px 4px 11px 9px; }
+  .result-add { width: 44px; }
+  .place-open { padding: 10px 2px; }
+  .place-fav { width: 36px; height: 40px; }
+  .place-add { width: 40px; }
+  .popup .popup-actions button { padding: 8px 12px; }
+
+  /* Hover styling sticks after a tap on touch devices; only apply it where a
+     pointer can actually hover. */
+  .btn:hover, .icon-btn:hover { background: var(--panel); border-color: var(--line-strong); }
+  .btn-primary:hover { background: var(--green); border-color: var(--green); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -16,7 +16,7 @@
     <button class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Toggle panel" aria-expanded="true">
       <span aria-hidden="true">☰</span>
     </button>
-    <h1>Atlanta BeltLine <span>Trail Planner</span></h1>
+    <h1><span class="title-city">Atlanta</span> BeltLine <span class="title-sub">Trail Planner</span></h1>
     <div class="topbar-actions">
       <button class="btn btn-primary" id="dropModeBtn" aria-pressed="false">
         <span aria-hidden="true">📍</span> Drop pin
@@ -224,6 +224,8 @@
     </section>
 
   </aside>
+
+  <button class="sidebar-backdrop" id="sidebarBackdrop" tabindex="-1" aria-label="Close the panel"></button>
 
   <main class="map-area">
     <div id="map" class="map" role="application" aria-label="Map of the Atlanta BeltLine"></div>
